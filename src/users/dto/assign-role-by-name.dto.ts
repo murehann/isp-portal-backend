@@ -1,10 +1,10 @@
-import { IsRoleCode } from 'src/roles/decorators';
+import { IsIdentifierCode } from 'src/common/decorators';
 import { IsUsername } from 'src/users/decorators';
 
 export class AssignRoleByNameDto {
   @IsUsername()
   username!: string;
 
-  @IsRoleCode()
+  @IsIdentifierCode()
   roleCode!: string;
 }

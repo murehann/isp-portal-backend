@@ -5,8 +5,8 @@ import {
   MaxLength,
   Matches,
 } from 'class-validator';
-import { IsRoleCode } from 'src/roles/decorators';
 import { IsUsername } from '../decorators/is-username.decorator';
+import { IsIdentifierCode, IsName } from 'src/common/decorators';
 
 export class CreateUserDto {
   @IsUsername({
@@ -32,13 +32,7 @@ export class CreateUserDto {
   })
   password!: string;
 
-  @IsString()
-  @IsNotEmpty()
-  @MinLength(3)
-  @MaxLength(30)
-  @Matches(/^[a-zA-Z ]+$/, {
-    message: 'Display name can only contain English letters and spaces',
-  })
+  @IsName()
   displayName!: string;
 
   @IsString()
@@ -51,6 +45,6 @@ export class CreateUserDto {
   })
   address!: string;
 
-  @IsRoleCode()
+  @IsIdentifierCode()
   roleCode!: string;
 }

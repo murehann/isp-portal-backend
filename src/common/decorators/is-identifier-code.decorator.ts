@@ -8,7 +8,7 @@ import {
   ValidationOptions,
 } from 'class-validator';
 
-export function IsRoleCode(options?: ValidationOptions) {
+export function IsIdentifierCode(options?: ValidationOptions) {
   return applyDecorators(
     IsString(options),
     IsNotEmpty(options),

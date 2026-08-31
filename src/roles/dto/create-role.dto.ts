@@ -1,17 +1,11 @@
 import { IsInt, Min } from 'class-validator';
-import { IsRoleCode, IsRoleName } from '../decorators';
+import { IsIdentifierCode, IsName } from 'src/common/decorators';
 
 export class CreateRoleDto {
-  @IsRoleName({
-    message:
-      'role name must contain at least one English letter and can only contain English letters and _',
-  })
+  @IsName()
   name!: string;
 
-  @IsRoleCode({
-    message:
-      'role code must contain at least one capital English letter and can only contain Capital English letters and _',
-  })
+  @IsIdentifierCode()
   code!: string;
 
   @IsInt()

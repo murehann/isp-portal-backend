@@ -8,15 +8,17 @@ import {
   ValidationOptions,
 } from 'class-validator';
 
-export function IsRoleName(options?: ValidationOptions) {
+export function IsName(options?: ValidationOptions) {
   return applyDecorators(
     IsString(options),
     IsNotEmpty(options),
     MinLength(3, options),
     MaxLength(30, options),
-    Matches(/^(?=.*[a-zA-Z])[a-zA-Z_ ]+$/, {
+    Matches(/^(?=.*[a-zA-Z])[a-zA-Z ]+$/, {
       ...options,
-      message: options?.message ?? 'invalid role name',
+      message:
+        options?.message ??
+        'Only uppercase and lowercase English letters and spaces are allowed.',
     }),
   );
 }

@@ -5,13 +5,10 @@ import {
   MaxLength,
   MinLength,
 } from 'class-validator';
+import { IsUsername } from 'src/users/decorators';
 
 export class LoginDto {
-  @IsString()
-  @IsNotEmpty()
-  @MinLength(3)
-  @MaxLength(30)
-  @Matches(/^[a-zA-Z0-9_]+$/, {
+  @IsUsername({
     message: 'Username can only contain English letters, numbers, and _',
   })
   username!: string;
