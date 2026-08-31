@@ -18,4 +18,8 @@ export class PackagesService {
 
     return savedPackage;
   }
+
+  getByCode(packageCode: string) {
+    return this.packagesRepository.findOneBy({ code: packageCode });
+  }
 }
