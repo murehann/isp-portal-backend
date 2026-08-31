@@ -16,7 +16,8 @@ export function IsIdentifierCode(options?: ValidationOptions) {
     MaxLength(30, options),
     Matches(/^(?=.*[A-Z])[A-Z_]+$/, {
       ...options,
-      message: options?.message ?? 'invalid role code',
+      message:
+        options?.message ?? 'Code can only contain capital letters and _',
     }),
   );
 }
