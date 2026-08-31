@@ -4,6 +4,8 @@ import {
   PrimaryGeneratedColumn,
   ManyToOne,
   JoinColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 
 @Entity()
@@ -36,4 +38,10 @@ export class User {
     foreignKeyConstraintName: 'FK_user_managed_by',
   })
   managedBy!: User | null;
+
+  @CreateDateColumn({ type: 'datetime' })
+  createdAt!: Date;
+
+  @UpdateDateColumn({ type: 'datetime' })
+  updatedAt!: Date;
 }

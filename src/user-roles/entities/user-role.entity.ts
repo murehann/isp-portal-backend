@@ -2,10 +2,12 @@ import { Role } from 'src/roles/entities/role.entity';
 import { User } from 'src/users/entities/user.entity';
 import {
   Column,
+  CreateDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
   Unique,
 } from 'typeorm';
 
@@ -40,4 +42,10 @@ export class UserRole {
     foreignKeyConstraintName: 'FK_roles_assigned_to_users',
   })
   role!: Role;
+
+  @CreateDateColumn({ type: 'datetime' })
+  createdAt!: Date;
+
+  @UpdateDateColumn({ type: 'datetime' })
+  updatedAt!: Date;
 }

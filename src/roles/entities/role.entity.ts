@@ -1,4 +1,11 @@
-import { Check, Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Check,
+  Column,
+  CreateDateColumn,
+  Entity,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
 @Entity()
 @Check(`"level" >= 0`)
@@ -14,4 +21,10 @@ export class Role {
 
   @Column({ type: 'int' })
   level!: number;
+
+  @CreateDateColumn({ type: 'datetime' })
+  createdAt!: Date;
+
+  @UpdateDateColumn({ type: 'datetime' })
+  updatedAt!: Date;
 }

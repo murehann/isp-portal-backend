@@ -1,10 +1,12 @@
 import { User } from 'src/users/entities/user.entity';
 import {
   Column,
+  CreateDateColumn,
   Entity,
   JoinColumn,
   OneToOne,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 
 export enum InternetLogonStatus {
@@ -77,4 +79,10 @@ export class InternetLogon {
     foreignKeyConstraintName: 'fk_INTERNET_LOGON_userId_USER',
   })
   user!: User;
+
+  @CreateDateColumn({ type: 'datetime' })
+  createdAt!: Date;
+
+  @UpdateDateColumn({ type: 'datetime' })
+  updatedAt!: Date;
 }
