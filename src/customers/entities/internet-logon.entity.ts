@@ -1,3 +1,4 @@
+import { Subscriptions } from 'src/subscriptions/entities/subscriptions.entity';
 import { User } from 'src/users/entities/user.entity';
 import {
   Column,
@@ -37,11 +38,9 @@ export class InternetLogon {
   @Column({
     type: 'varchar',
     length: 36,
-    nullable: true,
     unique: true,
   })
-  // TODO: after implementing subscriptions module and creating subscriptions entity refer it here and implement has relationship
-  currentSubscriptionId!: string | null; // TODO: null for now but when referencing subscription entity null not allowed
+  currentSubscriptionId!: string;
 
   @Column({
     type: 'varchar',
@@ -79,6 +78,17 @@ export class InternetLogon {
     foreignKeyConstraintName: 'fk_INTERNET_LOGON_userId_USER',
   })
   user!: User;
+
+  @OneToOne(() => Subscriptions, {
+    onDelete: 'RESTRICT',
+  })
+  @JoinColumn({
+    name: 'currentSubscriptionId',
+    referencedColumnName: 'id',
+    foreignKeyConstraintName:
+      'fk_INTERNET_LOGON_currentSubscription_SUBSCRIPTION',
+  })
+  currentSubscription!: Subscriptions;
 
   @CreateDateColumn({ type: 'datetime' })
   createdAt!: Date;

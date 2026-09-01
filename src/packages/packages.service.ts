@@ -19,7 +19,9 @@ export class PackagesService {
     return savedPackage;
   }
 
-  getByCode(packageCode: string) {
-    return this.packagesRepository.findOneBy({ code: packageCode });
+  async getByCode(packageCode: string) {
+    return this.packagesRepository.findOneBy({
+      code: packageCode,
+    });
   }
 }
