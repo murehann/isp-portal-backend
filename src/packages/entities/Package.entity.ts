@@ -10,8 +10,11 @@ import {
   name: 'packages',
 })
 export class Package {
-  @PrimaryGeneratedColumn('uuid')
-  id!: string;
+  @PrimaryGeneratedColumn({
+    type: 'smallint',
+    unsigned: true,
+  })
+  id!: number;
 
   @Column({
     type: 'varchar',

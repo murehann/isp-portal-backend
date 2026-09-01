@@ -14,14 +14,17 @@ import {
 @Entity()
 @Unique('UQ_user_role', ['userId', 'roleId'])
 export class UserRole {
-  @PrimaryGeneratedColumn('uuid')
-  id!: string;
+  @PrimaryGeneratedColumn({
+    type: 'smallint',
+    unsigned: true,
+  })
+  id!: number;
 
-  @Column({ type: 'varchar', length: 36 })
-  userId!: string;
+  @Column({ type: 'smallint', unsigned: true })
+  userId!: number;
 
-  @Column({ type: 'varchar', length: 36 })
-  roleId!: string;
+  @Column({ type: 'smallint', unsigned: true })
+  roleId!: number;
 
   @ManyToOne(() => User, {
     onDelete: 'CASCADE',

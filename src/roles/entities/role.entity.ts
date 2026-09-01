@@ -10,8 +10,11 @@ import {
 @Entity()
 @Check(`"level" >= 0`)
 export class Role {
-  @PrimaryGeneratedColumn('uuid')
-  id!: string;
+  @PrimaryGeneratedColumn({
+    type: 'smallint',
+    unsigned: true,
+  })
+  id!: number;
 
   @Column({ type: 'varchar', unique: true, length: 30 })
   name!: string;

@@ -1,9 +1,11 @@
-import { IsUUID } from 'class-validator';
+import { IsInt, Min } from 'class-validator';
 
 export class AssignRoleDto {
-  @IsUUID()
-  userId!: string;
+  @IsInt()
+  @Min(1)
+  userId!: number;
 
-  @IsUUID()
-  roleId!: string;
+  @IsInt()
+  @Min(1)
+  roleId!: number;
 }

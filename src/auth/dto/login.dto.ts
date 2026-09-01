@@ -1,33 +1,19 @@
-import {
-  IsNotEmpty,
-  IsString,
-  Matches,
-  MaxLength,
-  MinLength,
-} from 'class-validator';
-import { IsUsername } from 'src/users/decorators';
+import { IsNotEmpty, IsString } from 'class-validator';
 
 export class LoginDto {
-  @IsUsername({
-    message: 'Username can only contain English letters, numbers, and _',
+  @IsString({
+    message: 'invalid username',
+  })
+  @IsNotEmpty({
+    message: 'invalid username',
   })
   username!: string;
 
-  @IsString()
-  @IsNotEmpty()
-  @MinLength(8)
-  @MaxLength(128)
-  @Matches(/[a-z]/, {
-    message: 'Password must contain at least one lowercase letter',
+  @IsString({
+    message: 'invalid password',
   })
-  @Matches(/[A-Z]/, {
-    message: 'Password must contain at least one uppercase letter',
-  })
-  @Matches(/\d/, {
-    message: 'Password must contain at least one number',
-  })
-  @Matches(/[@$!%*?&._-]/, {
-    message: 'Password must contain at least one special character',
+  @IsNotEmpty({
+    message: 'invalid password',
   })
   password!: string;
 }

@@ -28,7 +28,7 @@ export class UserRolesService {
     return this.userRolesRepository.save(newUserRole);
   }
 
-  findByUserId(userId: string) {
+  findByUserId(userId: number) {
     return this.userRolesRepository
       .createQueryBuilder('userRole')
       .innerJoinAndSelect('userRole.role', 'role')

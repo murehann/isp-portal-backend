@@ -10,8 +10,11 @@ import {
 
 @Entity()
 export class User {
-  @PrimaryGeneratedColumn('uuid')
-  id!: string;
+  @PrimaryGeneratedColumn({
+    type: 'smallint',
+    unsigned: true,
+  })
+  id!: number;
 
   @Column({ type: 'varchar', unique: true, length: 100 })
   username!: string;
@@ -25,8 +28,8 @@ export class User {
   @Column({ type: 'text' })
   address!: string;
 
-  @Column({ type: 'varchar', length: 36, nullable: true }) // using mysql as db, and no native uuid in mysql, and pk uuid stored as varchar(36), so to match with that making it consistent with pk type
-  managedById!: string | null;
+  @Column({ type: 'smallint', unsigned: true, nullable: true })
+  managedById!: number | null;
 
   @ManyToOne(() => User, {
     onDelete: 'SET NULL',

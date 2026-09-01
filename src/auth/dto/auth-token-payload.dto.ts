@@ -1,5 +1,5 @@
 export class AuthTokenPayloadDto {
-  sub!: string;
+  sub!: number;
   username!: string;
   currentRole!: string;
 }

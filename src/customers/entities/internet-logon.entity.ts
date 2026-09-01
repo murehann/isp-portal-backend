@@ -19,8 +19,11 @@ export enum InternetLogonStatus {
   name: 'internet_logon',
 })
 export class InternetLogon {
-  @PrimaryGeneratedColumn('uuid')
-  id!: string;
+  @PrimaryGeneratedColumn({
+    type: 'smallint',
+    unsigned: true,
+  })
+  id!: number;
 
   @Column({
     type: 'varchar',
@@ -36,11 +39,11 @@ export class InternetLogon {
   internetLogonPassword!: string;
 
   @Column({
-    type: 'varchar',
-    length: 36,
+    type: 'smallint',
+    unsigned: true,
     unique: true,
   })
-  currentSubscriptionId!: string;
+  currentSubscriptionId!: number;
 
   @Column({
     type: 'varchar',
@@ -63,11 +66,11 @@ export class InternetLogon {
   assignedIP!: string;
 
   @Column({
-    type: 'varchar',
-    length: 36,
+    type: 'smallint',
+    unsigned: true,
     unique: true,
   })
-  userId!: string;
+  userId!: number;
 
   @OneToOne(() => User, {
     onDelete: 'CASCADE',
@@ -86,7 +89,7 @@ export class InternetLogon {
     name: 'currentSubscriptionId',
     referencedColumnName: 'id',
     foreignKeyConstraintName:
-      'fk_INTERNET_LOGON_currentSubscription_SUBSCRIPTION',
+      'fk_INTERNET_LOGON_currentSubscriptionId_SUBSCRIPTION',
   })
   currentSubscription!: Subscriptions;
 

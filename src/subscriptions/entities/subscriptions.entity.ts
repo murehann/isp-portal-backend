@@ -18,14 +18,17 @@ export enum SubscriptionsStatusEnum {
 
 @Entity()
 export class Subscriptions {
-  @PrimaryGeneratedColumn('uuid')
-  id!: string;
+  @PrimaryGeneratedColumn({
+    type: 'smallint',
+    unsigned: true,
+  })
+  id!: number;
 
-  @Column({ type: 'varchar', length: 36 })
-  userId!: string;
+  @Column({ type: 'smallint', unsigned: true })
+  userId!: number;
 
-  @Column({ type: 'varchar', length: 36 })
-  packageId!: string;
+  @Column({ type: 'smallint', unsigned: true })
+  packageId!: number;
 
   @Column({
     type: 'enum',
