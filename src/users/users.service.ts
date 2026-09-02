@@ -10,7 +10,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UserRolesService } from 'src/user-roles/user-roles.service';
 import { Role } from 'src/roles/entities/role.entity';
 import * as argon2 from 'argon2';
-import { AssignRoleByNameDto } from './dto/assign-role-by-name.dto';
+import { AssignRoleDto } from './dto/assign-role-by-name.dto';
 
 @Injectable()
 export class UsersService {
@@ -21,9 +21,9 @@ export class UsersService {
   ) {}
 
   async createUser(user: CreateUserDto) {
-    const { roleCode, ...createUserData } = user;
+    const { roleId, ...createUserData } = user;
 
-    const role = await this.rolessRepository.findOneBy({ code: roleCode });
+    const role = await this.rolessRepository.findOneBy({ id: roleId });
     if (!role) throw new BadRequestException('Invalid role code');
 
     const hashedPassword = await argon2.hash(createUserData.password);
@@ -37,7 +37,7 @@ export class UsersService {
     await this.userRolesService.assign({ userId: newUser.id, roleId: role.id });
     return {
       ...newUser,
-      assignedRole: role.code,
+      assignedRoleName: role.name,
     };
   }
 
@@ -46,8 +46,8 @@ export class UsersService {
   }
 
   // returns null if no user found, used in auth
-  async findByUsername(username: string) {
-    const user = await this.usersRepository.findOneBy({ username });
+  async findByEmail(email: string) {
+    const user = await this.usersRepository.findOneBy({ email });
     if (!user) return null;
 
     const userRoles = await this.userRolesService.findByUserId(user.id);
@@ -58,35 +58,36 @@ export class UsersService {
     };
   }
 
-  async assignRoleByName(assignRoleByNameDto: AssignRoleByNameDto) {
+  async assignRole(assignRoleDto: AssignRoleDto) {
     const user = await this.usersRepository.findOne({
       select: {
-        id: true,
+        displayName: true,
       },
       where: {
-        username: assignRoleByNameDto.username,
+        id: assignRoleDto.userId,
       },
     });
     if (!user) throw new NotFoundException('user not found');
 
     const role = await this.rolessRepository.findOne({
       select: {
-        id: true,
+        name: true,
       },
       where: {
-        code: assignRoleByNameDto.roleCode,
+        id: assignRoleDto.roleId,
       },
     });
     if (!role) throw new NotFoundException('role not found');
 
     const newUserRole = await this.userRolesService.assign({
-      userId: user.id,
-      roleId: role.id,
+      userId: assignRoleDto.userId,
+      roleId: assignRoleDto.roleId,
     });
 
     return {
       id: newUserRole.id,
-      ...assignRoleByNameDto,
+      name: user.displayName,
+      role: role.name,
     };
   }
 }

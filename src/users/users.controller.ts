@@ -2,7 +2,7 @@ import { Body, Controller, Get, Post } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { Roles } from 'src/common/decorators/roles.decorator';
-import { AssignRoleByNameDto } from './dto/assign-role-by-name.dto';
+import { AssignRoleDto } from './dto/assign-role-by-name.dto';
 import { Public } from 'src/common/decorators';
 
 @Controller('users')
@@ -26,7 +26,7 @@ export class UsersController {
 
   @Post('assign')
   @Roles('SUPER_ADMIN')
-  assignRoleByName(@Body() assignRoleByName: AssignRoleByNameDto) {
-    return this.usersService.assignRoleByName(assignRoleByName);
+  assignRole(@Body() assignRoleDto: AssignRoleDto) {
+    return this.usersService.assignRole(assignRoleDto);
   }
 }

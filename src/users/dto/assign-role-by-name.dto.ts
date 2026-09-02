@@ -1,10 +1,11 @@
-import { IsIdentifierCode } from 'src/common/decorators';
-import { IsUsername } from 'src/users/decorators';
+import { IsInt, Min } from 'class-validator';
 
-export class AssignRoleByNameDto {
-  @IsUsername()
-  username!: string;
+export class AssignRoleDto {
+  @IsInt()
+  @Min(1)
+  userId!: number;
 
-  @IsIdentifierCode()
-  roleCode!: string;
+  @IsInt()
+  @Min(1)
+  roleId!: number;
 }

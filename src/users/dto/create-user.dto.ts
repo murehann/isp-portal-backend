@@ -4,15 +4,15 @@ import {
   MinLength,
   MaxLength,
   Matches,
+  IsEmail,
+  IsInt,
+  Min,
 } from 'class-validator';
-import { IsUsername } from '../decorators/is-username.decorator';
-import { IsIdentifierCode, IsName } from 'src/common/decorators';
+import { IsName } from 'src/common/decorators';
 
 export class CreateUserDto {
-  @IsUsername({
-    message: 'Username can only contain English letters, numbers, and _',
-  })
-  username!: string;
+  @IsEmail()
+  email!: string;
 
   @IsString()
   @IsNotEmpty()
@@ -45,6 +45,7 @@ export class CreateUserDto {
   })
   address!: string;
 
-  @IsIdentifierCode()
-  roleCode!: string;
+  @IsInt()
+  @Min(1)
+  roleId!: number;
 }

@@ -16,14 +16,14 @@ export class CustomersService {
   ) {}
 
   async createCustomer(createCustomerDto: CreateCustomerDto) {
-    const { internetLogonData, packageCode, ...createUserDto } =
+    const { internetLogonData, packageId, ...createUserDto } =
       createCustomerDto;
 
     const user = await this.usersService.createUser(createUserDto);
     const currentSubscription =
       await this.subscriptionsService.createSubscription({
         userId: user.id,
-        packageCode,
+        packageId,
       });
 
     const internetLogon = this.internetLogonRepository.create({

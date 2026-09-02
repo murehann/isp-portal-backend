@@ -19,7 +19,11 @@ export class UserRolesService {
       },
     });
     return userRoles.map((userRole) => {
-      return { username: userRole.user.username, roleCode: userRole.role.code };
+      return {
+        name: userRole.user.displayName,
+        email: userRole.user.email,
+        roleName: userRole.role.name,
+      };
     });
   }
 

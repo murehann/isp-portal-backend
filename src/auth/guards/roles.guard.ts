@@ -8,14 +8,10 @@ import { Reflector } from '@nestjs/core';
 import { Request } from 'express';
 import { Observable } from 'rxjs';
 import { ROLES_KEY } from 'src/common/decorators/roles.decorator';
-import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
-  constructor(
-    private readonly reflector: Reflector,
-    private readonly usersService: UsersService,
-  ) {}
+  constructor(private readonly reflector: Reflector) {}
 
   canActivate(
     context: ExecutionContext,
@@ -30,14 +26,15 @@ export class RolesGuard implements CanActivate {
     }
 
     const request: Request & {
-      user: { username: string; sub: number; currentRole: string };
+      user: { sub: number; currentRoleCode: string };
     } = context.switchToHttp().getRequest();
     const user = request.user;
 
     if (!user) throw new ForbiddenException('missing valid request data!');
-    if (!user.currentRole) throw new ForbiddenException('user has no roles!');
+    if (!user.currentRoleCode)
+      throw new ForbiddenException('user has no roles!');
 
-    if (!requiredRoles.includes(user.currentRole))
+    if (!requiredRoles.includes(user.currentRoleCode))
       throw new ForbiddenException(
         'you donot have permission to access this resource',
       );
