@@ -60,12 +60,6 @@ export class InternetLogon {
   status!: InternetLogonStatus;
 
   @Column({
-    type: 'varchar',
-    length: 15,
-  })
-  assignedIP!: string;
-
-  @Column({
     type: 'smallint',
     unsigned: true,
     unique: true,

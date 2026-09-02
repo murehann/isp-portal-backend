@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 import { UsersService } from 'src/users/users.service';
 import { CreateCustomerDto } from './dto/create-customer.dto';
 import { SubscriptionsService } from 'src/subscriptions/subscriptions.service';
+import { generatePassword } from './util';
 
 @Injectable()
 export class CustomersService {
@@ -16,8 +17,7 @@ export class CustomersService {
   ) {}
 
   async createCustomer(createCustomerDto: CreateCustomerDto) {
-    const { internetLogonData, packageId, ...createUserDto } =
-      createCustomerDto;
+    const { packageId, ...createUserDto } = createCustomerDto;
 
     const user = await this.usersService.createUser(createUserDto);
     const currentSubscription =
@@ -26,10 +26,14 @@ export class CustomersService {
         packageId,
       });
 
+    const internetLogonData = {
+      internetLogonUsername: user.email.split('@')[0].slice(0, 6) + user.id,
+      internetLogonPassword: generatePassword(),
+    };
+
     const internetLogon = this.internetLogonRepository.create({
       ...internetLogonData,
       userId: user.id,
-      assignedIP: '10.0.0.2', // hardcoding for now
       currentSubscriptionId: currentSubscription.id,
     });
 
