@@ -13,15 +13,19 @@ export class SubscriptionsService {
     private readonly packagesService: PackagesService,
   ) {}
 
-  async createSubscription(createSubscriptionDto: CreateSubscriptionDto) {
-    const packageEntity = await this.packagesService.getById(
+  async createSubscription(
+    createSubscriptionDto: CreateSubscriptionDto,
+    manager = this.subscriptionsRepository.manager,
+  ) {
+    const subscriptionsRepository = manager.getRepository(Subscriptions);
+    const packageEntity = await this.packagesService.findById(
       createSubscriptionDto.packageId,
     );
 
     if (!packageEntity) throw new NotFoundException(`Package not found!`);
 
-    return await this.subscriptionsRepository.save(
-      this.subscriptionsRepository.create({
+    return await subscriptionsRepository.save(
+      subscriptionsRepository.create({
         userId: createSubscriptionDto.userId,
         packageId: packageEntity.id,
       }),

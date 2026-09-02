@@ -20,7 +20,11 @@ export class UsersService {
     private readonly rolesService: RolesService,
   ) {}
 
-  async createUser(user: CreateUserDto) {
+  async createUser(
+    user: CreateUserDto,
+    manager = this.usersRepository.manager,
+  ) {
+    const usersRepository = manager.getRepository(User);
     const { roleId, ...createUserData } = user;
 
     const role = await this.rolesService.findById(roleId);
@@ -28,13 +32,16 @@ export class UsersService {
 
     const hashedPassword = await argon2.hash(createUserData.password);
 
-    const createdUser = this.usersRepository.create({
+    const createdUser = usersRepository.create({
       ...createUserData,
       password: hashedPassword,
     });
-    const newUser = await this.usersRepository.save(createdUser);
+    const newUser = await usersRepository.save(createdUser);
 
-    await this.userRolesService.assign({ userId: newUser.id, roleId: role.id });
+    await this.userRolesService.assign(
+      { userId: newUser.id, roleId: role.id },
+      manager,
+    );
     return {
       ...newUser,
       assignedRoleName: role.name,

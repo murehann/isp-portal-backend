@@ -27,9 +27,12 @@ export class UserRolesService {
     });
   }
 
-  assign(assignRoleDto: AssignRoleDto) {
-    const newUserRole = this.userRolesRepository.create(assignRoleDto);
-    return this.userRolesRepository.save(newUserRole);
+  assign(
+    assignRoleDto: AssignRoleDto,
+    manager = this.userRolesRepository.manager,
+  ) {
+    const userRolesRepository = manager.getRepository(UserRole);
+    return userRolesRepository.save(userRolesRepository.create(assignRoleDto));
   }
 
   findByUserId(userId: number) {

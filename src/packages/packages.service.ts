@@ -19,7 +19,7 @@ export class PackagesService {
     return savedPackage;
   }
 
-  async getById(packageId: number) {
+  async findById(packageId: number) {
     return this.packagesRepository.findOneBy({
       id: packageId,
     });
