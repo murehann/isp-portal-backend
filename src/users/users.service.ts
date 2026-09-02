@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
@@ -28,7 +24,7 @@ export class UsersService {
     const { roleId, ...createUserData } = user;
 
     const role = await this.rolesService.findById(roleId);
-    if (!role) throw new BadRequestException('Invalid role code');
+    if (!role) throw new NotFoundException('Role not found!');
 
     const hashedPassword = await argon2.hash(createUserData.password);
 

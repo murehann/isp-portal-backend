@@ -18,7 +18,7 @@ import { RolesGuard } from './guards/roles.guard';
           global: true,
           secret: configService.getOrThrow<string>('JWT_SECRET'),
           signOptions: {
-            expiresIn: '15m', // TODO: change 5 minute to proper expiry time
+            expiresIn: '1d', // TODO: change 1d (One day) to proper expiry time
           },
         };
       },

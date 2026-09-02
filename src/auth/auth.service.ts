@@ -14,12 +14,12 @@ export class AuthService {
   async login(email: string, password: string): Promise<LoginResponseDto> {
     const user = await this.userService.findByEmail(email);
 
-    if (!user) throw new UnauthorizedException('Invalid Username or Password!');
+    if (!user) throw new UnauthorizedException('Invalid email or password!');
 
     const validPassword = await argon2.verify(user.password, password);
 
     if (!validPassword)
-      throw new UnauthorizedException('Invalid Username  or Password!');
+      throw new UnauthorizedException('Invalid email or password!');
 
     const currentRoleCode = user.roles.reduce((lowestLevelRole, role) =>
       lowestLevelRole.level < role.level ? lowestLevelRole : role,
