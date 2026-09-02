@@ -8,22 +8,22 @@ import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UserRolesService } from 'src/user-roles/user-roles.service';
-import { Role } from 'src/roles/entities/role.entity';
 import * as argon2 from 'argon2';
 import { AssignRoleDto } from './dto/assign-role-by-name.dto';
+import { RolesService } from 'src/roles/roles.service';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User) private usersRepository: Repository<User>,
-    @InjectRepository(Role) private rolessRepository: Repository<Role>,
     private readonly userRolesService: UserRolesService,
+    private readonly rolesService: RolesService,
   ) {}
 
   async createUser(user: CreateUserDto) {
     const { roleId, ...createUserData } = user;
 
-    const role = await this.rolessRepository.findOneBy({ id: roleId });
+    const role = await this.rolesService.findById(roleId);
     if (!role) throw new BadRequestException('Invalid role code');
 
     const hashedPassword = await argon2.hash(createUserData.password);
@@ -69,14 +69,7 @@ export class UsersService {
     });
     if (!user) throw new NotFoundException('user not found');
 
-    const role = await this.rolessRepository.findOne({
-      select: {
-        name: true,
-      },
-      where: {
-        id: assignRoleDto.roleId,
-      },
-    });
+    const role = await this.rolesService.findById(assignRoleDto.roleId);
     if (!role) throw new NotFoundException('role not found');
 
     const newUserRole = await this.userRolesService.assign({

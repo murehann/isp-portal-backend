@@ -17,4 +17,10 @@ export class RolesService {
     const newRole = this.rolesRepository.create(role);
     return this.rolesRepository.save(newRole);
   }
+
+  findById(id: number): Promise<Role | null> {
+    return this.rolesRepository.findOneBy({
+      id,
+    });
+  }
 }
