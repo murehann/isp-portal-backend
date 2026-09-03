@@ -14,7 +14,6 @@ export enum InternetLogonStatus {
   ONLINE = 'ONLINE',
   OFFLINE = 'OFFLINE',
 }
-// TODO: add proper type script types to all these
 @Entity({
   name: 'internet_logon',
 })

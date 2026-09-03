@@ -1,11 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
-import { InternetLogon } from './entities/internet-logon.entity';
 import { UsersService } from 'src/users/users.service';
 import { CreateCustomerDto } from './dto/create-customer.dto';
 import { SubscriptionsService } from 'src/subscriptions/subscriptions.service';
-import { generatePassword } from './util';
 import { DataSource } from 'typeorm';
+import { InternetLogonService } from 'src/internet-logon/internet-logon.service';
 
 @Injectable()
 export class CustomersService {
@@ -13,6 +12,7 @@ export class CustomersService {
     @InjectDataSource() private readonly dataSource: DataSource,
     private readonly usersService: UsersService,
     private readonly subscriptionsService: SubscriptionsService,
+    private readonly internetLogonService: InternetLogonService,
   ) {}
 
   async createCustomer(createCustomerDto: CreateCustomerDto) {
@@ -29,17 +29,13 @@ export class CustomersService {
           manager,
         );
 
-      const internetLogonData = {
-        internetLogonUsername: user.email.split('@')[0].slice(0, 6) + user.id,
-        internetLogonPassword: generatePassword(),
-      };
-
-      const internetLogon = await manager.save(
-        manager.create(InternetLogon, {
-          ...internetLogonData,
+      const internetLogon = await this.internetLogonService.createInternetLogon(
+        {
           userId: user.id,
+          userEmail: user.email,
           currentSubscriptionId: currentSubscription.id,
-        }),
+        },
+        manager,
       );
 
       return {
