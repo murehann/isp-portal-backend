@@ -1,8 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { UserRole } from './entities/user-role.entity';
 import { AssignRoleDto } from './dto/assign-role.dto';
 import { InjectRepository } from '@nestjs/typeorm';
+import { isDuplicateKeyError } from 'src/common/database/is-duplicate-key-error';
 
 @Injectable()
 export class UserRolesService {
@@ -27,12 +28,21 @@ export class UserRolesService {
     });
   }
 
-  assign(
+  async assign(
     assignRoleDto: AssignRoleDto,
     manager = this.userRolesRepository.manager,
   ) {
     const userRolesRepository = manager.getRepository(UserRole);
-    return userRolesRepository.save(userRolesRepository.create(assignRoleDto));
+    try {
+      return await userRolesRepository.save(
+        userRolesRepository.create(assignRoleDto),
+      );
+    } catch (error: unknown) {
+      if (isDuplicateKeyError(error)) {
+        throw new ConflictException('User already has this role!');
+      }
+      throw error;
+    }
   }
 
   findByUserId(userId: number) {

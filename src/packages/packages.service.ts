@@ -1,8 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { CreatePackageDto } from './dto/create-package.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Package } from './entities/Package.entity';
 import { Repository } from 'typeorm';
+import { isDuplicateKeyError } from 'src/common/database/is-duplicate-key-error';
 
 @Injectable()
 export class PackagesService {
@@ -12,11 +13,16 @@ export class PackagesService {
   ) {}
 
   async createPackage(createPackageDto: CreatePackageDto) {
-    const savedPackage = await this.packagesRepository.save(
-      this.packagesRepository.create(createPackageDto),
-    );
-
-    return savedPackage;
+    try {
+      return await this.packagesRepository.save(
+        this.packagesRepository.create(createPackageDto),
+      );
+    } catch (error: unknown) {
+      if (isDuplicateKeyError(error)) {
+        throw new ConflictException(`Package already exists!`);
+      }
+      throw error;
+    }
   }
 
   async findById(packageId: number) {

@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
@@ -7,6 +11,7 @@ import { UserRolesService } from 'src/user-roles/user-roles.service';
 import * as argon2 from 'argon2';
 import { AssignRoleDto } from './dto/assign-role-by-name.dto';
 import { RolesService } from 'src/roles/roles.service';
+import { isDuplicateKeyError } from 'src/common/database/is-duplicate-key-error';
 
 @Injectable()
 export class UsersService {
@@ -17,27 +22,39 @@ export class UsersService {
   ) {}
 
   async createUser(
-    user: CreateUserDto,
+    createUserDto: CreateUserDto,
     manager = this.usersRepository.manager,
   ) {
     const usersRepository = manager.getRepository(User);
-    const { roleId, ...createUserData } = user;
+
+    const { roleId, ...createUserData } = createUserDto;
 
     const role = await this.rolesService.findById(roleId);
     if (!role) throw new NotFoundException('Role not found!');
 
     const hashedPassword = await argon2.hash(createUserData.password);
 
-    const createdUser = usersRepository.create({
-      ...createUserData,
-      password: hashedPassword,
-    });
-    const newUser = await usersRepository.save(createdUser);
+    let newUser: User;
+
+    try {
+      newUser = await usersRepository.save(
+        usersRepository.create({
+          ...createUserData,
+          password: hashedPassword,
+        }),
+      );
+    } catch (error: unknown) {
+      if (isDuplicateKeyError(error)) {
+        throw new ConflictException('Email already in use!');
+      }
+      throw error;
+    }
 
     await this.userRolesService.assign(
       { userId: newUser.id, roleId: role.id },
       manager,
     );
+
     return {
       ...newUser,
       assignedRoleName: role.name,
