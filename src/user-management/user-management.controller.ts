@@ -13,4 +13,10 @@ export class UserManagementController {
   createCustomer(@Body() createCustomerDto: CreateCustomerDto) {
     return this.userManagementService.createCustomer(createCustomerDto);
   }
+
+  @Post('admin')
+  @Roles('ADMIN', 'SUPER_ADMIN')
+  createAdmin(@Body() createAdminDto: CreateAdminDto) {
+    return this.userManagementService.createAdmin(createAdminDto);
+  }
 }
