@@ -32,10 +32,15 @@ export class Package {
 
   @Column({
     type: 'int',
-    unique: true,
     unsigned: true,
   })
-  bandwidthMbps!: number;
+  downloadBandwidthMbps!: number;
+
+  @Column({
+    type: 'int',
+    unsigned: true,
+  })
+  uploadBandwidthMbps!: number;
 
   @Column({
     type: 'int',
