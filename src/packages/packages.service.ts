@@ -30,4 +30,8 @@ export class PackagesService {
       id: packageId,
     });
   }
+
+  getAll() {
+    return this.packagesRepository.find();
+  }
 }

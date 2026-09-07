@@ -31,4 +31,8 @@ export class SubscriptionsService {
       }),
     );
   }
+
+  getAll() {
+    return this.subscriptionsRepository.find();
+  }
 }
