@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { UsersService } from 'src/users/users.service';
-import { CreateCustomerDto } from './dto/create-customer.dto';
+import { CreateCustomerDto } from '../user-management/dto/create-customer.dto';
 import { SubscriptionsService } from 'src/subscriptions/subscriptions.service';
 import { DataSource } from 'typeorm';
 import { InternetLogonService } from 'src/internet-logon/internet-logon.service';
+import { UserRolesService } from 'src/user-roles/user-roles.service';
 
 @Injectable()
 export class CustomersService {
@@ -13,34 +14,49 @@ export class CustomersService {
     private readonly usersService: UsersService,
     private readonly subscriptionsService: SubscriptionsService,
     private readonly internetLogonService: InternetLogonService,
+    private readonly userRolesService: UserRolesService,
   ) {}
 
   async createCustomer(createCustomerDto: CreateCustomerDto) {
+    console.log('creat customer ran');
     const { packageId, ...createUserDto } = createCustomerDto;
 
     return this.dataSource.transaction(async (manager) => {
-      const user = await this.usersService.createUser(createUserDto, manager);
-      const currentSubscription =
-        await this.subscriptionsService.createSubscription(
-          {
-            userId: user.id,
-            packageId,
-          },
-          manager,
-        );
+      // create user
+      const newUser = await this.usersService.create(createUserDto, manager);
 
-      const internetLogon = await this.internetLogonService.createInternetLogon(
+      // assign role - setting roleId 2, this will be a seeded value it database, and immutable
+      await this.userRolesService.assign(
         {
-          userId: user.id,
-          userEmail: user.email,
-          currentSubscriptionId: currentSubscription.id,
+          userId: newUser.id,
+          roleId: 2,
+        },
+        manager,
+      );
+
+      // creat subscription
+      const newSubscription = await this.subscriptionsService.create(
+        {
+          userId: newUser.id,
+          packageId,
+        },
+        manager,
+      );
+
+      // create internet logon
+      const newInternetLogon = await this.internetLogonService.create(
+        {
+          userId: newUser.id,
+          userEmail: newUser.email,
+          currentSubscriptionId: newSubscription.id,
         },
         manager,
       );
 
       return {
-        ...user,
-        ...internetLogon,
+        userData: newUser,
+        subscriptionData: newSubscription,
+        internetLogonData: newInternetLogon,
       };
     });
   }

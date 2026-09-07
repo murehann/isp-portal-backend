@@ -3,14 +3,15 @@ import { UsersService } from 'src/users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { LoginResponseDto } from './dto/login-response.dto';
 import * as argon2 from 'argon2';
+import { UserRolesService } from 'src/user-roles/user-roles.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly userService: UsersService,
     private readonly jwtService: JwtService,
+    private readonly userRolesService: UserRolesService,
   ) {}
-  // TODO: implement password hash comparison
   async login(email: string, password: string): Promise<LoginResponseDto> {
     const user = await this.userService.findByEmail(email);
 
@@ -21,9 +22,12 @@ export class AuthService {
     if (!validPassword)
       throw new UnauthorizedException('Invalid email or password!');
 
-    const currentRoleCode = user.roles.reduce((lowestLevelRole, role) =>
-      lowestLevelRole.level < role.level ? lowestLevelRole : role,
-    ).code;
+    const userRoles = await this.userRolesService.findByUserId(user.id);
+    const currentRoleCode = userRoles
+      .map((userRole) => userRole.role)
+      .reduce((lowestLevelRole, role) =>
+        lowestLevelRole.level < role.level ? lowestLevelRole : role,
+      ).code;
 
     const tokenPayload = {
       sub: user.id,

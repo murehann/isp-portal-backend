@@ -9,7 +9,7 @@ export class PackagesController {
 
   @Post()
   @Roles('ADMIN', 'SUPER_ADMIN')
-  createPackage(@Body() createPackageDto: CreatePackageDto) {
+  create(@Body() createPackageDto: CreatePackageDto) {
     return this.packagesService.createPackage(createPackageDto);
   }
 }

@@ -7,10 +7,12 @@ import { ConfigService } from '@nestjs/config';
 import { AuthGuard } from './guards/auth.guard';
 import { APP_GUARD } from '@nestjs/core';
 import { RolesGuard } from './guards/roles.guard';
+import { UserRolesModule } from 'src/user-roles/user-roles.module';
 
 @Module({
   imports: [
     UsersModule,
+    UserRolesModule,
     JwtModule.registerAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {

@@ -13,7 +13,7 @@ export class InternetLogonService {
     private readonly internetLogonRepository: Repository<InternetLogon>,
   ) {}
 
-  async createInternetLogon(
+  async create(
     createInternetLogonDto: CreateInternetLogonDto,
     manager = this.internetLogonRepository.manager,
   ): Promise<InternetLogon> {

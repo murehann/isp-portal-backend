@@ -9,6 +9,7 @@ import { AuthModule } from './auth/auth.module';
 import { RolesModule } from './roles/roles.module';
 import { CustomersModule } from './customers/customers.module';
 import { PackagesModule } from './packages/packages.module';
+import { UserManagementModule } from './user-management/user-management.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { PackagesModule } from './packages/packages.module';
     RolesModule,
     CustomersModule,
     PackagesModule,
+    UserManagementModule,
   ],
   controllers: [AppController],
   providers: [AppService],

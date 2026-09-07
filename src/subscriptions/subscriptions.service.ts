@@ -13,7 +13,7 @@ export class SubscriptionsService {
     private readonly packagesService: PackagesService,
   ) {}
 
-  async createSubscription(
+  async create(
     createSubscriptionDto: CreateSubscriptionDto,
     manager = this.subscriptionsRepository.manager,
   ) {

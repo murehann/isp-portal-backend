@@ -5,8 +5,6 @@ import {
   MaxLength,
   Matches,
   IsEmail,
-  IsInt,
-  Min,
 } from 'class-validator';
 import { IsName } from 'src/common/decorators';
 
@@ -44,8 +42,4 @@ export class CreateUserDto {
       'Address can only contain English letters, numbers, "-", ",", and "."',
   })
   address!: string;
-
-  @IsInt()
-  @Min(1)
-  roleId!: number;
 }
