@@ -18,7 +18,6 @@ export class CustomersService {
   ) {}
 
   async createCustomer(createCustomerDto: CreateCustomerDto) {
-    console.log('creat customer ran');
     const { packageId, ...createUserDto } = createCustomerDto;
 
     return this.dataSource.transaction(async (manager) => {

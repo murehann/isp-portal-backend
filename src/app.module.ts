@@ -1,13 +1,11 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { UsersModule } from './users/users.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './users/entities/user.entity';
 import { AuthModule } from './auth/auth.module';
 import { RolesModule } from './roles/roles.module';
-import { CustomersModule } from './customers/customers.module';
 import { PackagesModule } from './packages/packages.module';
 import { UserManagementModule } from './user-management/user-management.module';
 
@@ -32,10 +30,8 @@ import { UserManagementModule } from './user-management/user-management.module';
         };
       },
     }),
-    UsersModule,
     AuthModule,
     RolesModule,
-    CustomersModule,
     PackagesModule,
     UserManagementModule,
   ],
