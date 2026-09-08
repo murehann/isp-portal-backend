@@ -18,7 +18,7 @@ export function IsName(options?: ValidationOptions) {
       ...options,
       message:
         options?.message ??
-        'Only uppercase and lowercase English letters and spaces are allowed.',
+        'Only uppercase and lowercase English letters and spaces are allowed in name.',
     }),
   );
 }
