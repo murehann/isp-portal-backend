@@ -1,10 +1,16 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import * as argon2 from 'argon2';
 import { isDuplicateKeyError } from 'src/common/database/is-duplicate-key-error';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -36,10 +42,58 @@ export class UsersService {
 
   // returns null if no user found, used in auth
   async findByEmail(email: string) {
-    return this.usersRepository.findOneBy({ email });
+    return this.usersRepository
+      .createQueryBuilder('user')
+      .addSelect('user.password')
+      .where('user.email = :email', { email })
+      .getOne();
   }
 
   getAll() {
     return this.usersRepository.find();
+  }
+
+  async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
+    const user = await this.usersRepository.findOneBy({ id });
+
+    if (!user) {
+      throw new NotFoundException('User not found!');
+    }
+
+    const { displayName, address, password } = updateUserDto;
+
+    if (
+      displayName === undefined &&
+      address === undefined &&
+      password === undefined
+    ) {
+      throw new BadRequestException('Empty updates are not allowed!');
+    }
+
+    const updateData: Partial<User> = {};
+
+    if (displayName !== undefined) {
+      updateData.displayName = displayName;
+    }
+
+    if (address !== undefined) {
+      updateData.address = address;
+    }
+
+    if (password !== undefined) {
+      updateData.password = await argon2.hash(password);
+    }
+
+    await this.usersRepository.update({ id }, updateData);
+    return this.usersRepository.findOneByOrFail({ id });
+  }
+
+  async isManagedBy(targetUserId: number, managerId: number) {
+    const managedUser = await this.usersRepository.findOneBy({
+      id: targetUserId,
+      managedById: managerId,
+    });
+
+    return !!managedUser;
   }
 }

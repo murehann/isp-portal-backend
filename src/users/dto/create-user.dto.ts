@@ -5,6 +5,9 @@ import {
   MaxLength,
   Matches,
   IsEmail,
+  IsInt,
+  Min,
+  IsOptional,
 } from 'class-validator';
 import { IsName } from 'src/common/decorators';
 
@@ -42,4 +45,9 @@ export class CreateUserDto {
       'Address can only contain English letters, numbers, "-", ",", and "."',
   })
   address!: string;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  managedById?: number;
 }
