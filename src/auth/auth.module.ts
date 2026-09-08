@@ -8,6 +8,7 @@ import { AuthGuard } from './guards/auth.guard';
 import { APP_GUARD } from '@nestjs/core';
 import { RolesGuard } from './guards/roles.guard';
 import { UserRolesModule } from 'src/user-roles/user-roles.module';
+import { UserOwnershipGuard } from './guards/user-ownership.guard';
 
 @Module({
   imports: [
@@ -37,7 +38,8 @@ import { UserRolesModule } from 'src/user-roles/user-roles.module';
       provide: APP_GUARD,
       useClass: RolesGuard,
     },
+    UserOwnershipGuard,
   ],
-  exports: [AuthService],
+  exports: [AuthService, UserOwnershipGuard],
 })
 export class AuthModule {}
