@@ -47,4 +47,7 @@ export class User {
 
   @UpdateDateColumn({ type: 'datetime' })
   updatedAt!: Date;
+
+  @Column({ type: 'boolean', default: false })
+  isDeleted!: boolean;
 }

@@ -46,6 +46,9 @@ export class Subscriptions {
   @Column({ type: 'int', unsigned: true, nullable: true })
   subscriptionCost!: number | null;
 
+  @Column({ type: 'boolean', default: false })
+  isDeleted!: boolean;
+
   @CreateDateColumn({ type: 'datetime' })
   createdAt!: Date;
 
