@@ -49,6 +49,10 @@ export class UsersService {
       .getOne();
   }
 
+  async findById(id: number) {
+    return this.usersRepository.findOneBy({ id });
+  }
+
   getAll() {
     return this.usersRepository.find();
   }

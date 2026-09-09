@@ -1,6 +1,11 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { CustomersService } from 'src/customers/customers.service';
-import { CreateAdminDto, CreateCustomerDto, CreateEmployeeDto } from './dto';
+import {
+  CreateAdminDto,
+  CreateCustomerDto,
+  CreateEmployeeDto,
+  InitializeCustomerDto,
+} from './dto';
 import { AdminService } from 'src/admin/admin.service';
 import { EmployeeService } from 'src/employee/employee.service';
 import { UsersService } from 'src/users/users.service';
@@ -54,6 +59,13 @@ export class UserManagementService {
     return this.usersService.update(userId, dto);
   }
 
+  initializeCustomer(userId: number, dto: InitializeCustomerDto) {
+    return this.customersService.initializeCustomer(userId, dto);
+  }
+
+  /*
+     --------------------------- HELPER FUNCTIONS ---------------------------
+  */
   async validateManager(params: {
     authenticatedUserId: number;
     dtoManagerId: number | undefined;

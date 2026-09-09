@@ -41,4 +41,28 @@ export class InternetLogonService {
       throw error;
     }
   }
+
+  async findByUserId(
+    userId: number,
+    manager = this.internetLogonRepository.manager,
+  ): Promise<InternetLogon | null> {
+    const internetLogonRepository = manager.getRepository(InternetLogon);
+    return internetLogonRepository.findOneBy({
+      userId,
+    });
+  }
+
+  async activate(
+    params: { subscriptionId: number; internetLogonId: number },
+    manager = this.internetLogonRepository.manager,
+  ) {
+    const internetLogonRepository = manager.getRepository(InternetLogon);
+
+    await internetLogonRepository.update(
+      { id: params.internetLogonId, isDeleted: true },
+      { currentSubscriptionId: params.subscriptionId, isDeleted: false },
+    );
+
+    return internetLogonRepository.findOneBy({ id: params.internetLogonId });
+  }
 }

@@ -5,12 +5,17 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Put,
   Request,
   UseGuards,
 } from '@nestjs/common';
 import { UserManagementService } from './user-management.service';
 import { CreateCustomerDto } from 'src/user-management/dto/create-customer.dto';
-import { CreateAdminDto, CreateEmployeeDto } from './dto';
+import {
+  CreateAdminDto,
+  CreateEmployeeDto,
+  InitializeCustomerDto,
+} from './dto';
 import { Roles } from 'src/common/decorators';
 import { UpdateUserDto } from 'src/users/dto/update-user.dto';
 import { UserOwnershipGuard } from 'src/auth/guards/user-ownership.guard';
@@ -20,6 +25,9 @@ import { type AuthenticatedRequest } from 'src/common/Types';
 export class UserManagementController {
   constructor(private readonly userManagementService: UserManagementService) {}
 
+  /*
+    ---------------- Create a new user with a facet ----------------
+  */
   @Post('customer')
   @Roles('ADMIN', 'SUPER_ADMIN')
   createCustomer(
@@ -47,6 +55,22 @@ export class UserManagementController {
     return this.userManagementService.createEmployee(createEmployeeDto, req);
   }
 
+  /*
+    ---------------- Initialize an existing user with a new facet ----------------
+  */
+  @Put(':userId/customer')
+  @Roles('ADMIN', 'SUPER_ADMIN')
+  @UseGuards(UserOwnershipGuard)
+  initializeCustomer(
+    @Param('userId', ParseIntPipe) userId: number,
+    @Body() dto: InitializeCustomerDto,
+  ) {
+    return this.userManagementService.initializeCustomer(userId, dto);
+  }
+
+  /*
+    ---------------- Update ----------------
+  */
   @Patch(':userId')
   @Roles('ADMIN', 'SUPER_ADMIN', 'CUSTOMER', 'EMPLOYEE')
   @UseGuards(UserOwnershipGuard)
