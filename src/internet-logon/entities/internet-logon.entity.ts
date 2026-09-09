@@ -3,6 +3,7 @@ import { User } from 'src/users/entities/user.entity';
 import {
   Column,
   CreateDateColumn,
+  DeleteDateColumn,
   Entity,
   JoinColumn,
   OneToOne,
@@ -94,4 +95,7 @@ export class InternetLogon {
 
   @UpdateDateColumn({ type: 'datetime' })
   updatedAt!: Date;
+
+  @DeleteDateColumn({ type: 'datetime' })
+  deletedAt!: Date | null;
 }

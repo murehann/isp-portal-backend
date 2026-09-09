@@ -6,6 +6,7 @@ import {
   JoinColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  DeleteDateColumn,
 } from 'typeorm';
 
 @Entity()
@@ -48,6 +49,6 @@ export class User {
   @UpdateDateColumn({ type: 'datetime' })
   updatedAt!: Date;
 
-  @Column({ type: 'boolean', default: false })
-  isDeleted!: boolean;
+  @DeleteDateColumn({ type: 'datetime' })
+  deletedAt!: Date | null;
 }

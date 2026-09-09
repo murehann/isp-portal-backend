@@ -2,6 +2,7 @@ import {
   Check,
   Column,
   CreateDateColumn,
+  DeleteDateColumn,
   Entity,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -33,4 +34,7 @@ export class Role {
 
   @UpdateDateColumn({ type: 'datetime' })
   updatedAt!: Date;
+
+  @DeleteDateColumn({ type: 'datetime' })
+  deletedAt!: Date | null;
 }

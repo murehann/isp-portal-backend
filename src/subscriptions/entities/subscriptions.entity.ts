@@ -3,6 +3,7 @@ import { User } from 'src/users/entities/user.entity';
 import {
   Column,
   CreateDateColumn,
+  DeleteDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
@@ -46,14 +47,14 @@ export class Subscriptions {
   @Column({ type: 'int', unsigned: true, nullable: true })
   subscriptionCost!: number | null;
 
-  @Column({ type: 'boolean', default: false })
-  isDeleted!: boolean;
-
   @CreateDateColumn({ type: 'datetime' })
   createdAt!: Date;
 
   @UpdateDateColumn({ type: 'datetime' })
   updatedAt!: Date;
+
+  @DeleteDateColumn({ type: 'datetime' })
+  deletedAt!: Date | null;
 
   @ManyToOne(() => User, {
     onDelete: 'NO ACTION',

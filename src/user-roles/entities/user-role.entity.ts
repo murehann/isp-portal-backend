@@ -9,6 +9,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
   Unique,
+  DeleteDateColumn,
 } from 'typeorm';
 
 @Entity()
@@ -52,6 +53,6 @@ export class UserRole {
   @UpdateDateColumn({ type: 'datetime' })
   updatedAt!: Date;
 
-  @Column({ type: 'boolean', default: false })
-  isDeleted!: boolean;
+  @DeleteDateColumn({ type: 'datetime' })
+  deletedAt!: Date | null;
 }
