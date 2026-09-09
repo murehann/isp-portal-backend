@@ -6,6 +6,7 @@ import { AdminModule } from 'src/admin/admin.module';
 import { EmployeeModule } from 'src/employee/employee.module';
 import { UsersModule } from 'src/users/users.module';
 import { AuthModule } from 'src/auth/auth.module';
+import { UserRolesModule } from 'src/user-roles/user-roles.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { AuthModule } from 'src/auth/auth.module';
     AdminModule,
     UsersModule,
     AuthModule,
+    UserRolesModule,
   ],
   providers: [UserManagementService],
   controllers: [UserManagementController],

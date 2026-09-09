@@ -14,7 +14,7 @@ import { CreateAdminDto, CreateEmployeeDto } from './dto';
 import { Roles } from 'src/common/decorators';
 import { UpdateUserDto } from 'src/users/dto/update-user.dto';
 import { UserOwnershipGuard } from 'src/auth/guards/user-ownership.guard';
-import { AuthTokenPayloadDto } from 'src/auth/dto/auth-token-payload.dto';
+import { type AuthenticatedRequest } from 'src/common/Types';
 
 @Controller('users')
 export class UserManagementController {
@@ -23,46 +23,28 @@ export class UserManagementController {
   @Post('customer')
   @Roles('ADMIN', 'SUPER_ADMIN')
   createCustomer(
-    @Request() req: { user: AuthTokenPayloadDto },
+    @Request() req: AuthenticatedRequest,
     @Body() createCustomerDto: CreateCustomerDto,
   ) {
-    const managedById =
-      req.user.currentRoleCode === 'SUPER_ADMIN'
-        ? (createCustomerDto.managedById ?? req.user.sub)
-        : req.user.sub;
-    return this.userManagementService.createCustomer({
-      ...createCustomerDto,
-      managedById,
-    });
+    return this.userManagementService.createCustomer(createCustomerDto, req);
   }
 
   @Post('admin')
   @Roles('SUPER_ADMIN')
   createAdmin(
-    @Request() req: { user: AuthTokenPayloadDto },
+    @Request() req: AuthenticatedRequest,
     @Body() createAdminDto: CreateAdminDto,
   ) {
-    const managedById = req.user.sub;
-    return this.userManagementService.createAdmin({
-      ...createAdminDto,
-      managedById,
-    });
+    return this.userManagementService.createAdmin(createAdminDto, req);
   }
 
   @Post('employee')
   @Roles('ADMIN', 'SUPER_ADMIN')
   createEmployee(
-    @Request() req: { user: AuthTokenPayloadDto },
+    @Request() req: AuthenticatedRequest,
     @Body() createEmployeeDto: CreateEmployeeDto,
   ) {
-    const managedById =
-      req.user.currentRoleCode === 'SUPER_ADMIN'
-        ? (createEmployeeDto.managedById ?? req.user.sub)
-        : req.user.sub;
-    return this.userManagementService.createEmployee({
-      ...createEmployeeDto,
-      managedById,
-    });
+    return this.userManagementService.createEmployee(createEmployeeDto, req);
   }
 
   @Patch(':userId')
