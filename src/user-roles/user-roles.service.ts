@@ -9,7 +9,7 @@ import { isDuplicateKeyError } from 'src/common/database/is-duplicate-key-error'
 export class UserRolesService {
   constructor(
     @InjectRepository(UserRole)
-    private userRolesRepository: Repository<UserRole>,
+    private readonly userRolesRepository: Repository<UserRole>,
   ) {}
 
   async getAll() {
@@ -21,8 +21,11 @@ export class UserRolesService {
     });
     return userRoles.map((userRole) => {
       return {
+        id: userRole.id,
+        userId: userRole.user.id,
         name: userRole.user.displayName,
         email: userRole.user.email,
+        roleId: userRole.role.id,
         roleName: userRole.role.name,
       };
     });
