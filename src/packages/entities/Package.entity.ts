@@ -25,13 +25,6 @@ export class Package {
   name!: string;
 
   @Column({
-    type: 'varchar',
-    length: 30,
-    unique: true,
-  })
-  code!: string;
-
-  @Column({
     type: 'int',
     unsigned: true,
   })
