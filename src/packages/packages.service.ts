@@ -2,7 +2,7 @@ import { ConflictException, Injectable } from '@nestjs/common';
 import { CreatePackageDto } from './dto/create-package.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Package } from './entities/Package.entity';
-import { Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import { isDuplicateKeyError } from 'src/common/database/is-duplicate-key-error';
 
 @Injectable()
@@ -25,8 +25,11 @@ export class PackagesService {
     }
   }
 
-  async findById(packageId: number) {
-    return this.packagesRepository.findOneBy({
+  async findById(packageId: number, manager?: EntityManager) {
+    const packagesRepository = manager
+      ? manager.getRepository(Package)
+      : this.packagesRepository;
+    return packagesRepository.findOneBy({
       id: packageId,
     });
   }

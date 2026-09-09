@@ -20,6 +20,7 @@ export class SubscriptionsService {
     const subscriptionsRepository = manager.getRepository(Subscriptions);
     const packageEntity = await this.packagesService.findById(
       createSubscriptionDto.packageId,
+      manager,
     );
 
     if (!packageEntity) throw new NotFoundException(`Package not found!`);
