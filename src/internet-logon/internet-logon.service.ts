@@ -79,18 +79,4 @@ export class InternetLogonService {
       userId,
     });
   }
-
-  async activate(
-    params: { subscriptionId: number; internetLogonId: number },
-    manager = this.internetLogonRepository.manager,
-  ) {
-    const internetLogonRepository = manager.getRepository(InternetLogon);
-
-    await internetLogonRepository.update(
-      { id: params.internetLogonId, isDeleted: true },
-      { currentSubscriptionId: params.subscriptionId, isDeleted: false },
-    );
-
-    return internetLogonRepository.findOneBy({ id: params.internetLogonId });
-  }
 }
