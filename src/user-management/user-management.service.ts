@@ -63,6 +63,10 @@ export class UserManagementService {
     return this.customersService.initializeCustomer(userId, dto);
   }
 
+  initializeAdmin(userId: number) {
+    return this.adminService.initializeAdmin(userId);
+  }
+
   /*
      --------------------------- HELPER FUNCTIONS ---------------------------
   */

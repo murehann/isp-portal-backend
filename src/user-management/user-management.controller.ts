@@ -68,6 +68,12 @@ export class UserManagementController {
     return this.userManagementService.initializeCustomer(userId, dto);
   }
 
+  @Put(':userId/admin')
+  @Roles('SUPER_ADMIN')
+  initializeAdmin(@Param('userId', ParseIntPipe) userId: number) {
+    return this.userManagementService.initializeAdmin(userId);
+  }
+
   /*
     ---------------- Update ----------------
   */
