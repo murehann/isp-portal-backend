@@ -1,8 +1,8 @@
 import { ConflictException, Injectable } from '@nestjs/common';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { UserRole } from './entities/user-role.entity';
 import { AssignRoleDto } from './dto/assign-role.dto';
-import { InjectRepository } from '@nestjs/typeorm';
+import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { isDuplicateKeyError } from 'src/common/database/is-duplicate-key-error';
 
 @Injectable()
@@ -10,6 +10,8 @@ export class UserRolesService {
   constructor(
     @InjectRepository(UserRole)
     private readonly userRolesRepository: Repository<UserRole>,
+    @InjectDataSource()
+    private readonly dataSource: DataSource,
   ) {}
 
   async getAll() {
@@ -33,9 +35,27 @@ export class UserRolesService {
 
   async assign(
     assignRoleDto: AssignRoleDto,
-    manager = this.userRolesRepository.manager,
+    manager = this.dataSource.manager,
   ) {
     const userRolesRepository = manager.getRepository(UserRole);
+
+    const existingUserRole = await userRolesRepository
+      .createQueryBuilder('userRole')
+      .withDeleted()
+      .setLock('pessimistic_write')
+      .where('userRole.userId = :userId', { userId: assignRoleDto.userId })
+      .andWhere('userRole.roleId = :roleId', { roleId: assignRoleDto.roleId })
+      .getOne();
+
+    if (existingUserRole) {
+      if (existingUserRole.deletedAt) {
+        existingUserRole.deletedAt = null;
+        Object.assign(existingUserRole, assignRoleDto);
+        return userRolesRepository.save(existingUserRole);
+      }
+      throw new ConflictException('User already has this role!');
+    }
+
     try {
       return await userRolesRepository.save(
         userRolesRepository.create(assignRoleDto),
