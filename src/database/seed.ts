@@ -49,11 +49,17 @@ async function seed() {
         return user;
       });
     } else {
+      const existingSuperAdmin = superAdmin;
       const assignedRoles = await userRolesService.findByUserId(superAdmin.id);
       if (!assignedRoles.some(({ roleId }) => roleId === superAdminRole.id)) {
-        await userRolesService.assign({
-          userId: superAdmin.id,
-          roleId: superAdminRole.id,
+        await dataSource.transaction(async (manager) => {
+          await userRolesService.assign(
+            {
+              userId: existingSuperAdmin.id,
+              roleId: superAdminRole.id,
+            },
+            manager,
+          );
         });
       }
     }
