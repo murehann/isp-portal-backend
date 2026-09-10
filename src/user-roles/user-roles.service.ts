@@ -51,15 +51,31 @@ export class UserRolesService {
       if (existingUserRole.deletedAt) {
         existingUserRole.deletedAt = null;
         Object.assign(existingUserRole, assignRoleDto);
-        return userRolesRepository.save(existingUserRole);
+        const savedUserRole = await userRolesRepository.save(existingUserRole);
+
+        return userRolesRepository.findOneOrFail({
+          where: { id: savedUserRole.id },
+          relations: {
+            user: true,
+            role: true,
+          },
+        });
       }
       throw new ConflictException('User already has this role!');
     }
 
     try {
-      return await userRolesRepository.save(
+      const savedUserrole = await userRolesRepository.save(
         userRolesRepository.create(assignRoleDto),
       );
+
+      return userRolesRepository.findOneOrFail({
+        where: { id: savedUserrole.id },
+        relations: {
+          user: true,
+          role: true,
+        },
+      });
     } catch (error: unknown) {
       if (isDuplicateKeyError(error)) {
         throw new ConflictException('User already has this role!');
