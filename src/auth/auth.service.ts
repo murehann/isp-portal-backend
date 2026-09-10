@@ -23,6 +23,10 @@ export class AuthService {
       throw new UnauthorizedException('Invalid email or password!');
 
     const userRoles = await this.userRolesService.findByUserId(user.id);
+
+    if (userRoles.length === 0)
+      throw new UnauthorizedException('User has no assigned role!');
+
     const currentRoleCode = userRoles
       .map((userRole) => userRole.role)
       .reduce((lowestLevelRole, role) =>
