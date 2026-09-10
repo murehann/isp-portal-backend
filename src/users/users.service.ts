@@ -26,6 +26,25 @@ export class UsersService {
     const usersRepository = manager.getRepository(User);
     const hashedPassword = await argon2.hash(createUserDto.password);
 
+    const existingUser = await usersRepository
+      .createQueryBuilder('user')
+      .withDeleted()
+      .setLock('pessimistic_write')
+      .where('user.email = :email', { email: createUserDto.email })
+      .getOne();
+
+    if (existingUser) {
+      if (existingUser.deletedAt) {
+        existingUser.deletedAt = null;
+        Object.assign(existingUser, {
+          ...createUserDto,
+          password: hashedPassword,
+        });
+        return usersRepository.save(existingUser);
+      }
+      throw new ConflictException('User already exists!');
+    }
+
     try {
       return await usersRepository.save(
         usersRepository.create({
