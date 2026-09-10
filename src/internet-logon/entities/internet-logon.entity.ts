@@ -87,9 +87,6 @@ export class InternetLogon {
   })
   currentSubscription!: Subscriptions;
 
-  @Column({ default: false, type: 'boolean' })
-  isDeleted!: boolean;
-
   @CreateDateColumn({ type: 'datetime' })
   createdAt!: Date;
 

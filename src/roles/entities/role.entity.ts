@@ -26,9 +26,6 @@ export class Role {
   @Column({ type: 'int' })
   level!: number;
 
-  @Column({ type: 'boolean', default: false })
-  isDeleted!: boolean;
-
   @CreateDateColumn({ type: 'datetime' })
   createdAt!: Date;
 
