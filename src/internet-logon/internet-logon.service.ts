@@ -24,16 +24,44 @@ export class InternetLogonService {
       internetLogonPassword: generatePassword(),
     };
 
+    const internetLogonRepository = manager.getRepository(InternetLogon);
+
+    const existingInternetLogon = await internetLogonRepository
+      .createQueryBuilder('internetLogon')
+      .withDeleted()
+      .setLock('pessimistic_write')
+      .where('internetLogon.userId = :userId', {
+        userId: createInternetLogonDto.userId,
+      })
+      .andWhere(
+        'internetLogon.internetLogonUsername = :internetLogonUsername',
+        {
+          internetLogonUsername: internetLogonData.internetLogonUsername,
+        },
+      )
+      .getOne();
+
+    if (existingInternetLogon) {
+      if (existingInternetLogon.deletedAt) {
+        existingInternetLogon.deletedAt = null;
+        Object.assign(existingInternetLogon, {
+          ...internetLogonData,
+          userId: createInternetLogonDto.userId,
+          currentSubscriptionId: createInternetLogonDto.currentSubscriptionId,
+        });
+        return internetLogonRepository.save(existingInternetLogon);
+      }
+      throw new ConflictException('User already has Internet Logon!');
+    }
+
     try {
-      const newInternetLogon = await manager.save(
-        manager.create(InternetLogon, {
+      return await internetLogonRepository.save(
+        internetLogonRepository.create({
           ...internetLogonData,
           userId: createInternetLogonDto.userId,
           currentSubscriptionId: createInternetLogonDto.currentSubscriptionId,
         }),
       );
-
-      return newInternetLogon;
     } catch (error: unknown) {
       if (isDuplicateKeyError(error)) {
         throw new ConflictException('User already has Internet Logon!');
