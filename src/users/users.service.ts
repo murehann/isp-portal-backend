@@ -4,9 +4,9 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
+import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
-import { Repository } from 'typeorm';
+import { DataSource, EntityManager, Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import * as argon2 from 'argon2';
 import { isDuplicateKeyError } from 'src/common/database/is-duplicate-key-error';
@@ -15,12 +15,13 @@ import { UpdateUserDto } from './dto/update-user.dto';
 @Injectable()
 export class UsersService {
   constructor(
-    @InjectRepository(User) private usersRepository: Repository<User>,
+    @InjectRepository(User) private readonly usersRepository: Repository<User>,
+    @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
 
   async create(
     createUserDto: CreateUserDto,
-    manager = this.usersRepository.manager,
+    manager = this.dataSource.manager,
   ) {
     const usersRepository = manager.getRepository(User);
     const hashedPassword = await argon2.hash(createUserDto.password);
@@ -41,8 +42,12 @@ export class UsersService {
   }
 
   // returns null if no user found, used in auth
-  async findByEmail(email: string) {
-    return this.usersRepository
+  async findByEmail(email: string, manager?: EntityManager) {
+    const usersRepository = manager
+      ? manager.getRepository(User)
+      : this.usersRepository;
+
+    return usersRepository
       .createQueryBuilder('user')
       .addSelect('user.password')
       .where('user.email = :email', { email })
