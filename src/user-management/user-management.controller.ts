@@ -74,6 +74,13 @@ export class UserManagementController {
     return this.userManagementService.initializeAdmin(userId);
   }
 
+  @Put(':userId/employee')
+  @Roles('SUPER_ADMIN', 'ADMIN')
+  @UseGuards(UserOwnershipGuard)
+  initializeEmployee(@Param('userId', ParseIntPipe) userId: number) {
+    return this.userManagementService.initializeEmployee(userId);
+  }
+
   /*
     ---------------- Update ----------------
   */

@@ -67,6 +67,10 @@ export class UserManagementService {
     return this.adminService.initializeAdmin(userId);
   }
 
+  initializeEmployee(userId: number) {
+    return this.employeeService.initializeEmployee(userId);
+  }
+
   /*
      --------------------------- HELPER FUNCTIONS ---------------------------
   */
