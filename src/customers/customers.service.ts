@@ -1,8 +1,4 @@
-import {
-  ConflictException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { UsersService } from 'src/users/users.service';
 import { CreateCustomerDto } from '../user-management/dto/create-customer.dto';
@@ -83,43 +79,23 @@ export class CustomersService {
         manager,
       );
 
-      // check for internet logon if present activate it else create it, if already active throw exception
-      let internetLogon = await this.internetLogonService.findByUserId(
-        userId,
+      // assign role - setting roleId 2, this will be a seeded value it database, and immutable
+      await this.userRolesService.assign(
+        {
+          userId,
+          roleId: 2,
+        },
         manager,
       );
 
-      if (internetLogon) {
-        if (internetLogon.isDeleted) {
-          internetLogon = await this.internetLogonService.activate(
-            {
-              internetLogonId: internetLogon.id,
-              subscriptionId: newSubscription.id,
-            },
-            manager,
-          );
-        } else {
-          throw new ConflictException('User is already a customer');
-        }
-      } else {
-        // assign role - setting roleId 2, this will be a seeded value it database, and immutable
-        await this.userRolesService.assign(
-          {
-            userId,
-            roleId: 2,
-          },
-          manager,
-        );
-
-        internetLogon = await this.internetLogonService.create(
-          {
-            userId: userId,
-            userEmail: user.email,
-            currentSubscriptionId: newSubscription.id,
-          },
-          manager,
-        );
-      }
+      const internetLogon = await this.internetLogonService.create(
+        {
+          userId: userId,
+          userEmail: user.email,
+          currentSubscriptionId: newSubscription.id,
+        },
+        manager,
+      );
 
       return {
         internetLogonData: internetLogon,
