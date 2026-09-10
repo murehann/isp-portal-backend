@@ -67,7 +67,7 @@ export class CustomersService {
   ) {
     return this.dataSource.transaction(async (manager) => {
       // check if valid user
-      const user = await this.usersService.findById(userId);
+      const user = await this.usersService.findById(userId, manager);
       if (!user) throw new NotFoundException('User does not exist!');
 
       // create new subscription

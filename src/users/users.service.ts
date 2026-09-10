@@ -73,8 +73,9 @@ export class UsersService {
       .getOne();
   }
 
-  async findById(id: number) {
-    return this.usersRepository.findOneBy({ id });
+  async findById(id: number, manager = this.usersRepository.manager) {
+    const usersRepository = manager.getRepository(User);
+    return usersRepository.findOneBy({ id });
   }
 
   getAll() {
