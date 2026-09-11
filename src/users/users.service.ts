@@ -12,6 +12,7 @@ import * as argon2 from 'argon2';
 import { isDuplicateKeyError } from 'src/common/database/is-duplicate-key-error';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserRolesService } from 'src/user-roles/user-roles.service';
+import { AuthTokenPayloadDto } from 'src/auth/dto/auth-token-payload.dto';
 
 @Injectable()
 export class UsersService {
@@ -101,8 +102,14 @@ export class UsersService {
     };
   }
 
-  getAll() {
-    return this.usersRepository.find();
+  getAll(actor: AuthTokenPayloadDto) {
+    if (actor.currentRoleCode === 'SUPER_ADMIN')
+      return this.usersRepository.find();
+    return this.usersRepository.find({
+      where: {
+        managedById: actor.sub,
+      },
+    });
   }
 
   async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
