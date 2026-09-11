@@ -85,10 +85,13 @@ export class UserRolesService {
   }
 
   findByUserId(userId: number) {
-    return this.userRolesRepository
-      .createQueryBuilder('userRole')
-      .innerJoinAndSelect('userRole.role', 'role')
-      .where('userRole.userId = :userId', { userId })
-      .getMany();
+    return this.userRolesRepository.find({
+      where: {
+        userId,
+      },
+      relations: {
+        role: true,
+      },
+    });
   }
 }
