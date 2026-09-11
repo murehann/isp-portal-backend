@@ -11,12 +11,14 @@ import { CreateUserDto } from './dto/create-user.dto';
 import * as argon2 from 'argon2';
 import { isDuplicateKeyError } from 'src/common/database/is-duplicate-key-error';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UserRolesService } from 'src/user-roles/user-roles.service';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User) private readonly usersRepository: Repository<User>,
     @InjectDataSource() private readonly dataSource: DataSource,
+    private readonly userRolesService: UserRolesService,
   ) {}
 
   async create(
@@ -76,6 +78,27 @@ export class UsersService {
   async findById(id: number, manager = this.usersRepository.manager) {
     const usersRepository = manager.getRepository(User);
     return usersRepository.findOneBy({ id });
+  }
+
+  async getProfile(userId: number) {
+    const user = await this.usersRepository.findOneBy({ id: userId });
+    if (!user) throw new NotFoundException('User not found!');
+
+    const userRoles = await this.userRolesService.findByUserId(userId);
+    const roles = userRoles.map((userRole) => {
+      return userRole.role.code;
+    });
+
+    return {
+      userId,
+      email: user.email,
+      displayName: user.displayName,
+      address: user.address,
+      role: roles,
+      managerId: user.managedById,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    };
   }
 
   getAll() {
