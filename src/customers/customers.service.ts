@@ -161,4 +161,11 @@ export class CustomersService {
 
     return this.internetLogonService.updateInternetLogon(userId, dto);
   }
+
+  async resetMAC(userId: number) {
+    const user = await this.usersService.findById(userId);
+    if (!user) throw new NotFoundException('User not found!');
+
+    return this.internetLogonService.resetMAC(userId);
+  }
 }

@@ -32,4 +32,11 @@ export class CustomersController {
   ) {
     return this.customersService.updateInternetLogon(userId, dto);
   }
+
+  @Roles('ADMIN', 'SUPER_ADMIN')
+  @UseGuards(UserOwnershipGuard)
+  @Patch(':userId/mac/reset')
+  resetMAC(@Param('userId', ParseIntPipe) userId: number) {
+    return this.customersService.resetMAC(userId);
+  }
 }

@@ -100,4 +100,29 @@ export class InternetLogonService {
 
     return this.internetLogonRepository.findOneByOrFail({ userId });
   }
+
+  async resetMAC(userId: number) {
+    const internetLogon = await this.internetLogonRepository.findOneBy({
+      userId,
+    });
+    if (!internetLogon) throw new NotFoundException('Customer data not found!');
+
+    await this.internetLogonRepository.update(
+      { userId },
+      {
+        registeredDeviceMAC: null,
+      },
+    );
+
+    const updatedInternetLogon =
+      await this.internetLogonRepository.findOneByOrFail({
+        userId,
+      });
+
+    return {
+      userId,
+      previousMAC: internetLogon.registeredDeviceMAC,
+      newMAC: updatedInternetLogon.registeredDeviceMAC,
+    };
+  }
 }
