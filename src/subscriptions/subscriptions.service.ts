@@ -36,4 +36,10 @@ export class SubscriptionsService {
   getAll() {
     return this.subscriptionsRepository.find();
   }
+
+  findById(subscriptionId: number) {
+    return this.subscriptionsRepository.findOneBy({
+      id: subscriptionId,
+    });
+  }
 }
