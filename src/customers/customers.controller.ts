@@ -39,4 +39,11 @@ export class CustomersController {
   resetMAC(@Param('userId', ParseIntPipe) userId: number) {
     return this.customersService.resetMAC(userId);
   }
+
+  @Roles('ADMIN', 'SUPER_ADMIN')
+  @UseGuards(UserOwnershipGuard)
+  @Patch(':userId/subscription/activate')
+  activateSubscription(@Param('userId', ParseIntPipe) userId: number) {
+    return this.customersService.activateSubscription(userId);
+  }
 }

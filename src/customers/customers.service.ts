@@ -168,4 +168,25 @@ export class CustomersService {
 
     return this.internetLogonService.resetMAC(userId);
   }
+
+  async activateSubscription(userId: number) {
+    return this.dataSource.transaction(async (manager) => {
+      const user = await this.usersService.findById(userId, manager);
+      if (!user) throw new NotFoundException('User not found!');
+
+      const internetLogon = await this.internetLogonService.findByUserId(
+        userId,
+        manager,
+      );
+      if (!internetLogon)
+        throw new NotFoundException('Customer data not found!');
+
+      const currentSubscriptionId = internetLogon.currentSubscriptionId;
+      return this.subscriptionsService.activate(
+        userId,
+        currentSubscriptionId,
+        manager,
+      );
+    });
+  }
 }
