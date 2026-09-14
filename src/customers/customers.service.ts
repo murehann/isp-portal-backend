@@ -8,6 +8,7 @@ import { InternetLogonService } from 'src/internet-logon/internet-logon.service'
 import { UserRolesService } from 'src/user-roles/user-roles.service';
 import { InitializeCustomerDto } from 'src/user-management/dto';
 import { PackagesService } from 'src/packages/packages.service';
+import { UpdateInternetLogonDto } from '../internet-logon/dto/update-internet-logon.dto';
 
 @Injectable()
 export class CustomersService {
@@ -152,5 +153,12 @@ export class CustomersService {
         },
       },
     };
+  }
+
+  async updateInternetLogon(userId: number, dto: UpdateInternetLogonDto) {
+    const user = await this.usersService.findById(userId);
+    if (!user) throw new NotFoundException('User not found!');
+
+    return this.internetLogonService.updateInternetLogon(userId, dto);
   }
 }

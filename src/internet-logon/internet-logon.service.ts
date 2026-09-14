@@ -1,10 +1,15 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateInternetLogonDto } from './dto/create-internet-logon.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { InternetLogon } from './entities/internet-logon.entity';
 import { Repository } from 'typeorm';
 import { generatePassword } from 'src/internet-logon/util';
 import { isDuplicateKeyError } from 'src/common/database/is-duplicate-key-error';
+import { UpdateInternetLogonDto } from 'src/internet-logon/dto/update-internet-logon.dto';
 
 @Injectable()
 export class InternetLogonService {
@@ -78,5 +83,21 @@ export class InternetLogonService {
     return internetLogonRepository.findOneBy({
       userId,
     });
+  }
+
+  async updateInternetLogon(userId: number, dto: UpdateInternetLogonDto) {
+    const internetLogon = await this.internetLogonRepository.findOneBy({
+      userId,
+    });
+    if (!internetLogon) throw new NotFoundException('Customer data not found!');
+
+    await this.internetLogonRepository.update(
+      { userId },
+      {
+        internetLogonPassword: dto.internetLogonPassword,
+      },
+    );
+
+    return this.internetLogonRepository.findOneByOrFail({ userId });
   }
 }
