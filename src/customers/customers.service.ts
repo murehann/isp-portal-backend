@@ -7,6 +7,7 @@ import { DataSource } from 'typeorm';
 import { InternetLogonService } from 'src/internet-logon/internet-logon.service';
 import { UserRolesService } from 'src/user-roles/user-roles.service';
 import { InitializeCustomerDto } from 'src/user-management/dto';
+import { PackagesService } from 'src/packages/packages.service';
 
 @Injectable()
 export class CustomersService {
@@ -16,6 +17,7 @@ export class CustomersService {
     private readonly subscriptionsService: SubscriptionsService,
     private readonly internetLogonService: InternetLogonService,
     private readonly userRolesService: UserRolesService,
+    private readonly packagesService: PackagesService,
   ) {}
 
   async createCustomer(createCustomerDto: CreateCustomerDto) {
@@ -102,5 +104,53 @@ export class CustomersService {
         subscriptionData: newSubscription,
       };
     });
+  }
+
+  async getCustomer(userId: number) {
+    const user = await this.usersService.findById(userId);
+    if (!user) throw new NotFoundException('User not found!');
+
+    const internetLogon = await this.internetLogonService.findByUserId(userId);
+    if (!internetLogon) throw new NotFoundException('Customer does not exist!');
+
+    const currentSubscription = await this.subscriptionsService.findById(
+      internetLogon.currentSubscriptionId,
+    );
+    if (!currentSubscription)
+      throw new NotFoundException('Subscription data not found!');
+
+    const currentPackage = await this.packagesService.findById(
+      currentSubscription.packageId,
+    );
+    if (!currentPackage) throw new NotFoundException('Package not found!');
+
+    return {
+      user: {
+        id: user.id,
+        email: user.email,
+        displayName: user.displayName,
+        address: user.address,
+      },
+      internetLogon: {
+        id: internetLogon.id,
+        username: internetLogon.internetLogonUsername,
+        password: internetLogon.internetLogonPassword,
+        connectionStatus: internetLogon.status,
+        registeredMAC: internetLogon.registeredDeviceMAC,
+      },
+      subscription: {
+        id: currentSubscription.id,
+        status: currentSubscription.status,
+        startDate: currentSubscription.startDate,
+        expireDate: currentSubscription.expireDate,
+        package: {
+          id: currentPackage.id,
+          name: currentPackage.name,
+          downloadMbps: currentPackage.downloadBandwidthMbps,
+          uploadMbps: currentPackage.uploadBandwidthMbps,
+          price: currentPackage.price,
+        },
+      },
+    };
   }
 }

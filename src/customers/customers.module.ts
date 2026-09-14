@@ -4,6 +4,8 @@ import { UsersModule } from 'src/users/users.module';
 import { SubscriptionsModule } from 'src/subscriptions/subscriptions.module';
 import { InternetLogonModule } from 'src/internet-logon/internet-logon.module';
 import { UserRolesModule } from 'src/user-roles/user-roles.module';
+import { CustomersController } from './customers.controller';
+import { PackagesModule } from 'src/packages/packages.module';
 
 @Module({
   imports: [
@@ -11,8 +13,9 @@ import { UserRolesModule } from 'src/user-roles/user-roles.module';
     SubscriptionsModule,
     InternetLogonModule,
     UserRolesModule,
+    PackagesModule,
   ],
-  controllers: [],
+  controllers: [CustomersController],
   providers: [CustomersService],
   exports: [CustomersService],
 })
