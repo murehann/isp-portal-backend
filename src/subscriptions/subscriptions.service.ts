@@ -1,8 +1,10 @@
 import {
   BadRequestException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   Subscriptions,
@@ -11,9 +13,13 @@ import {
 import { EntityManager, Repository } from 'typeorm';
 import { CreateSubscriptionDto } from './dto/create-subscription.dto';
 import { PackagesService } from 'src/packages/packages.service';
+import { InternetLogon } from 'src/internet-logon/entities/internet-logon.entity';
 
 @Injectable()
 export class SubscriptionsService {
+  private readonly logger = new Logger(SubscriptionsService.name);
+  private processingExpiredSubscriptions = false;
+
   constructor(
     @InjectRepository(Subscriptions)
     private readonly subscriptionsRepository: Repository<Subscriptions>,
@@ -84,5 +90,107 @@ export class SubscriptionsService {
     subscription.status = SubscriptionsStatusEnum.ACTIVE;
 
     return subscriptionsRepository.save(subscription);
+  }
+
+  @Cron(CronExpression.EVERY_MINUTE)
+  private async processExpiredSubscriptions() {
+    if (this.processingExpiredSubscriptions) return;
+    this.processingExpiredSubscriptions = true;
+
+    try {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const expiredSubscriptions = await this.subscriptionsRepository.find({
+        where: {
+          status: SubscriptionsStatusEnum.ACTIVE,
+        },
+      });
+
+      for (const subscription of expiredSubscriptions) {
+        if (!subscription.expireDate || subscription.expireDate > today) {
+          continue;
+        }
+
+        await this.subscriptionsRepository.manager.transaction(
+          async (manager) => {
+            const subscriptionsRepository =
+              manager.getRepository(Subscriptions);
+            const internetLogonRepository =
+              manager.getRepository(InternetLogon);
+
+            const current = await subscriptionsRepository
+              .createQueryBuilder('subscription')
+              .where('subscription.id = :subscriptionId', {
+                subscriptionId: subscription.id,
+              })
+              .andWhere('subscription.status = :status', {
+                status: SubscriptionsStatusEnum.ACTIVE,
+              })
+              .setLock('pessimistic_write')
+              .getOne();
+
+            if (!current || !current.expireDate || current.expireDate > today) {
+              return;
+            }
+
+            const internetLogon = await internetLogonRepository.findOneBy({
+              userId: current.userId,
+            });
+
+            if (
+              !internetLogon ||
+              internetLogon.currentSubscriptionId !== current.id
+            ) {
+              return;
+            }
+
+            const shouldRenew =
+              internetLogon.renewOnce || internetLogon.autoRenewEnabled;
+
+            if (shouldRenew) {
+              const packageEntity = await this.packagesService.findById(
+                current.packageId,
+                manager,
+              );
+              if (!packageEntity) {
+                this.logger.error(
+                  `Cannot renew subscription ${current.id}: package ${current.packageId} not found`,
+                );
+                return;
+              }
+
+              const startDate = new Date(current.expireDate);
+              const expireDate = new Date(startDate);
+              expireDate.setDate(expireDate.getDate() + 30);
+
+              const renewedSubscription = await subscriptionsRepository.save(
+                subscriptionsRepository.create({
+                  userId: current.userId,
+                  packageId: current.packageId,
+                  status: SubscriptionsStatusEnum.ACTIVE,
+                  startDate,
+                  expireDate,
+                  subscriptionCost: packageEntity.price,
+                }),
+              );
+
+              internetLogon.currentSubscriptionId = renewedSubscription.id;
+              if (!internetLogon.autoRenewEnabled) {
+                internetLogon.renewOnce = false;
+              }
+              await internetLogonRepository.save(internetLogon);
+            }
+
+            current.status = SubscriptionsStatusEnum.EXPIRED;
+            await subscriptionsRepository.save(current);
+          },
+        );
+      }
+    } catch (error) {
+      this.logger.error('Failed to process expired subscriptions', error);
+    } finally {
+      this.processingExpiredSubscriptions = false;
+    }
   }
 }
