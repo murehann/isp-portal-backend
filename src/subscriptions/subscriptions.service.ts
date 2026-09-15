@@ -117,71 +117,85 @@ export class SubscriptionsService {
         .andWhere('subscription.expireDate = :today', { today })
         .getMany();
 
+      const errors: unknown[] = [];
+
       for (const subscription of expiredSubscriptions) {
-        await this.subscriptionsRepository.manager.transaction(
-          async (manager) => {
-            const subscriptionsRepository =
-              manager.getRepository(Subscriptions);
+        try {
+          await this.subscriptionsRepository.manager.transaction(
+            async (manager) => {
+              const subscriptionsRepository =
+                manager.getRepository(Subscriptions);
 
-            const current = await subscriptionsRepository
-              .createQueryBuilder('subscription')
-              .where('subscription.id = :subscriptionId', {
-                subscriptionId: subscription.id,
-              })
-              .andWhere('subscription.status = :status', {
-                status: SubscriptionsStatusEnum.ACTIVE,
-              })
-              .setLock('pessimistic_write')
-              .getOne();
+              const current = await subscriptionsRepository
+                .createQueryBuilder('subscription')
+                .where('subscription.id = :subscriptionId', {
+                  subscriptionId: subscription.id,
+                })
+                .andWhere('subscription.status = :status', {
+                  status: SubscriptionsStatusEnum.ACTIVE,
+                })
+                .setLock('pessimistic_write')
+                .getOne();
 
-            if (!current || !current.expireDate) {
-              return;
-            }
+              if (!current || !current.expireDate) {
+                return;
+              }
 
-            if (current.expireDate !== today) {
-              return;
-            }
+              if (current.expireDate !== today) {
+                return;
+              }
 
-            const internetLogon = await this.internetLogonService.findByUserId(
-              current.userId,
-              manager,
-            );
+              const internetLogon =
+                await this.internetLogonService.findByUserId(
+                  current.userId,
+                  manager,
+                );
 
-            if (
-              !internetLogon ||
-              internetLogon.currentSubscriptionId !== current.id
-            ) {
-              return;
-            }
+              if (
+                !internetLogon ||
+                internetLogon.currentSubscriptionId !== current.id
+              ) {
+                return;
+              }
 
-            const shouldRenew =
-              internetLogon.renewOnce || internetLogon.autoRenewEnabled;
+              const shouldRenew =
+                internetLogon.renewOnce || internetLogon.autoRenewEnabled;
 
-            if (shouldRenew) {
-              const renewedSubscription = await this.create(
-                {
-                  userId: current.userId,
-                  packageId: current.packageId,
-                },
-                manager,
-              );
+              if (shouldRenew) {
+                const renewedSubscription = await this.create(
+                  {
+                    userId: current.userId,
+                    packageId: current.packageId,
+                  },
+                  manager,
+                );
 
-              await this.activate(
-                current.userId,
-                renewedSubscription.id,
-                manager,
-              );
+                await this.activate(
+                  current.userId,
+                  renewedSubscription.id,
+                  manager,
+                );
 
-              await this.internetLogonService.completeRenewal(
-                current.userId,
-                renewedSubscription.id,
-                manager,
-              );
-            }
+                await this.internetLogonService.completeRenewal(
+                  current.userId,
+                  renewedSubscription.id,
+                  manager,
+                );
+              }
 
-            current.status = SubscriptionsStatusEnum.EXPIRED;
-            await subscriptionsRepository.save(current);
-          },
+              current.status = SubscriptionsStatusEnum.EXPIRED;
+              await subscriptionsRepository.save(current);
+            },
+          );
+        } catch (error) {
+          errors.push(error);
+        }
+      }
+
+      if (errors.length > 0) {
+        throw new AggregateError(
+          errors,
+          `Failed to process ${errors.length} expired subscription(s)`,
         );
       }
     } finally {
