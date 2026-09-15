@@ -85,6 +85,16 @@ export class InternetLogonService {
     });
   }
 
+  async setRenewOnce(userId: number, enabled: boolean) {
+    const internetLogon = await this.internetLogonRepository.findOneBy({
+      userId,
+    });
+    if (!internetLogon) throw new NotFoundException('Customer data not found!');
+
+    internetLogon.renewOnce = enabled;
+    return this.internetLogonRepository.save(internetLogon);
+  }
+
   async updateInternetLogon(userId: number, dto: UpdateInternetLogonDto) {
     const internetLogon = await this.internetLogonRepository.findOneBy({
       userId,
