@@ -39,10 +39,10 @@ export class Subscriptions {
   status!: SubscriptionsStatusEnum;
 
   @Column({ type: 'date', nullable: true })
-  startDate!: Date | null;
+  startDate!: string | null;
 
   @Column({ type: 'date', nullable: true })
-  expireDate!: Date | null;
+  expireDate!: string | null;
 
   @Column({ type: 'int', unsigned: true, nullable: true })
   subscriptionCost!: number | null;
