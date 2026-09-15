@@ -4,12 +4,13 @@ import { SubscriptionsService } from './subscriptions.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Subscriptions } from './entities/subscriptions.entity';
 import { PackagesModule } from 'src/packages/packages.module';
-import { InternetLogon } from 'src/internet-logon/entities/internet-logon.entity';
+import { InternetLogonModule } from 'src/internet-logon/internet-logon.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Subscriptions, InternetLogon]),
+    TypeOrmModule.forFeature([Subscriptions]),
     PackagesModule,
+    InternetLogonModule,
   ],
   controllers: [SubscriptionsController],
   providers: [SubscriptionsService],

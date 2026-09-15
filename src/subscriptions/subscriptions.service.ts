@@ -1,7 +1,6 @@
 import {
   BadRequestException,
   Injectable,
-  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
@@ -13,17 +12,17 @@ import {
 import { EntityManager, Repository } from 'typeorm';
 import { CreateSubscriptionDto } from './dto/create-subscription.dto';
 import { PackagesService } from 'src/packages/packages.service';
-import { InternetLogon } from 'src/internet-logon/entities/internet-logon.entity';
+import { InternetLogonService } from 'src/internet-logon/internet-logon.service';
 
 @Injectable()
 export class SubscriptionsService {
-  private readonly logger = new Logger(SubscriptionsService.name);
   private processingExpiredSubscriptions = false;
 
   constructor(
     @InjectRepository(Subscriptions)
     private readonly subscriptionsRepository: Repository<Subscriptions>,
     private readonly packagesService: PackagesService,
+    private readonly internetLogonService: InternetLogonService,
   ) {}
 
   async create(
@@ -118,8 +117,6 @@ export class SubscriptionsService {
           async (manager) => {
             const subscriptionsRepository =
               manager.getRepository(Subscriptions);
-            const internetLogonRepository =
-              manager.getRepository(InternetLogon);
 
             const current = await subscriptionsRepository
               .createQueryBuilder('subscription')
@@ -146,9 +143,10 @@ export class SubscriptionsService {
               return;
             }
 
-            const internetLogon = await internetLogonRepository.findOneBy({
-              userId: current.userId,
-            });
+            const internetLogon = await this.internetLogonService.findByUserId(
+              current.userId,
+              manager,
+            );
 
             if (
               !internetLogon ||
@@ -166,9 +164,6 @@ export class SubscriptionsService {
                 manager,
               );
               if (!packageEntity) {
-                this.logger.error(
-                  `Cannot renew subscription ${current.id}: package ${current.packageId} not found`,
-                );
                 return;
               }
 
@@ -187,11 +182,11 @@ export class SubscriptionsService {
                 }),
               );
 
-              internetLogon.currentSubscriptionId = renewedSubscription.id;
-              if (!internetLogon.autoRenewEnabled) {
-                internetLogon.renewOnce = false;
-              }
-              await internetLogonRepository.save(internetLogon);
+              await this.internetLogonService.completeRenewal(
+                current.userId,
+                renewedSubscription.id,
+                manager,
+              );
             }
 
             current.status = SubscriptionsStatusEnum.EXPIRED;
@@ -199,8 +194,6 @@ export class SubscriptionsService {
           },
         );
       }
-    } catch (error) {
-      this.logger.error('Failed to process expired subscriptions', error);
     } finally {
       this.processingExpiredSubscriptions = false;
     }
