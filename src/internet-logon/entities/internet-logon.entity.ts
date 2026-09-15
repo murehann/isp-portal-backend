@@ -66,6 +66,18 @@ export class InternetLogon {
   })
   userId!: number;
 
+  @Column({
+    type: 'boolean',
+    default: false,
+  })
+  renewOnce!: boolean;
+
+  @Column({
+    type: 'boolean',
+    default: false,
+  })
+  autoRenewEnabled!: boolean;
+
   @OneToOne(() => User, {
     onDelete: 'CASCADE',
   })
