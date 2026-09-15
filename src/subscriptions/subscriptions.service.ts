@@ -83,15 +83,17 @@ export class SubscriptionsService {
     const expireDate = new Date(startDate);
     expireDate.setDate(expireDate.getDate() + 30);
 
-    subscription.startDate = startDate;
-    subscription.expireDate = expireDate;
+    subscription.startDate = startDate.toISOString().split('T')[0];
+    subscription.expireDate = expireDate.toISOString().split('T')[0];
     subscription.subscriptionCost = subscribedPackage.price;
     subscription.status = SubscriptionsStatusEnum.ACTIVE;
 
     return subscriptionsRepository.save(subscription);
   }
 
-  @Cron('0 0 * * *')
+  @Cron('0 0 * * *', {
+    name: 'EXPIRED_SUBSCRIPTION_HANDLER_CRON',
+  })
   private async processExpiredSubscriptions() {
     if (this.processingExpiredSubscriptions) return;
     this.processingExpiredSubscriptions = true;
@@ -133,13 +135,7 @@ export class SubscriptionsService {
               return;
             }
 
-            const currentExpireDate = [
-              current.expireDate.getFullYear(),
-              String(current.expireDate.getMonth() + 1).padStart(2, '0'),
-              String(current.expireDate.getDate()).padStart(2, '0'),
-            ].join('-');
-
-            if (currentExpireDate !== today) {
+            if (current.expireDate !== today) {
               return;
             }
 
@@ -176,8 +172,8 @@ export class SubscriptionsService {
                   userId: current.userId,
                   packageId: current.packageId,
                   status: SubscriptionsStatusEnum.ACTIVE,
-                  startDate,
-                  expireDate,
+                  startDate: startDate.toISOString().split('T')[0],
+                  expireDate: expireDate.toISOString().split('T')[0],
                   subscriptionCost: packageEntity.price,
                 }),
               );
