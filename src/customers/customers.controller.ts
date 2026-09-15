@@ -5,13 +5,13 @@ import {
   Param,
   ParseIntPipe,
   Patch,
-  Post,
   UseGuards,
 } from '@nestjs/common';
 import { CustomersService } from './customers.service';
 import { Roles } from 'src/common/decorators';
 import { UserOwnershipGuard } from 'src/auth/guards/user-ownership.guard';
 import { UpdateInternetLogonDto } from '../internet-logon/dto/update-internet-logon.dto';
+import { UpdateAutoRenewDto } from '../internet-logon/dto/update-auto-renew.dto';
 
 @Controller('customers')
 export class CustomersController {
@@ -50,8 +50,18 @@ export class CustomersController {
 
   @Roles('ADMIN', 'SUPER_ADMIN')
   @UseGuards(UserOwnershipGuard)
-  @Post(':userId/subscription/renew')
+  @Patch(':userId/subscription/renew')
   renewSubscription(@Param('userId', ParseIntPipe) userId: number) {
     return this.customersService.renewSubscription(userId);
+  }
+
+  @Roles('ADMIN', 'SUPER_ADMIN')
+  @UseGuards(UserOwnershipGuard)
+  @Patch(':userId/subscription/auto-renew')
+  setAutoRenew(
+    @Param('userId', ParseIntPipe) userId: number,
+    @Body() dto: UpdateAutoRenewDto,
+  ) {
+    return this.customersService.setAutoRenew(userId, dto.enabled);
   }
 }

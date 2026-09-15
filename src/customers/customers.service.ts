@@ -203,4 +203,18 @@ export class CustomersService {
       autoRenewEnabled: internetLogon.autoRenewEnabled,
     };
   }
+
+  async setAutoRenew(userId: number, enabled: boolean) {
+    const internetLogon = await this.internetLogonService.setAutoRenew(
+      userId,
+      enabled,
+    );
+
+    return {
+      userId,
+      currentSubscriptionId: internetLogon.currentSubscriptionId,
+      renewOnce: internetLogon.renewOnce,
+      autoRenewEnabled: internetLogon.autoRenewEnabled,
+    };
+  }
 }
