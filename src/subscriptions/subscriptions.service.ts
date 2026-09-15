@@ -4,7 +4,7 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { Cron } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   Subscriptions,
@@ -92,26 +92,28 @@ export class SubscriptionsService {
     return subscriptionsRepository.save(subscription);
   }
 
-  @Cron(CronExpression.EVERY_MINUTE)
+  @Cron('0 0 * * *')
   private async processExpiredSubscriptions() {
     if (this.processingExpiredSubscriptions) return;
     this.processingExpiredSubscriptions = true;
 
     try {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
+      const now = new Date();
+      const today = [
+        now.getFullYear(),
+        String(now.getMonth() + 1).padStart(2, '0'),
+        String(now.getDate()).padStart(2, '0'),
+      ].join('-');
 
-      const expiredSubscriptions = await this.subscriptionsRepository.find({
-        where: {
+      const expiredSubscriptions = await this.subscriptionsRepository
+        .createQueryBuilder('subscription')
+        .where('subscription.status = :status', {
           status: SubscriptionsStatusEnum.ACTIVE,
-        },
-      });
+        })
+        .andWhere('subscription.expireDate = :today', { today })
+        .getMany();
 
       for (const subscription of expiredSubscriptions) {
-        if (!subscription.expireDate || subscription.expireDate > today) {
-          continue;
-        }
-
         await this.subscriptionsRepository.manager.transaction(
           async (manager) => {
             const subscriptionsRepository =
@@ -130,7 +132,17 @@ export class SubscriptionsService {
               .setLock('pessimistic_write')
               .getOne();
 
-            if (!current || !current.expireDate || current.expireDate > today) {
+            if (!current || !current.expireDate) {
+              return;
+            }
+
+            const currentExpireDate = [
+              current.expireDate.getFullYear(),
+              String(current.expireDate.getMonth() + 1).padStart(2, '0'),
+              String(current.expireDate.getDate()).padStart(2, '0'),
+            ].join('-');
+
+            if (currentExpireDate !== today) {
               return;
             }
 
