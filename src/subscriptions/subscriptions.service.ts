@@ -155,27 +155,18 @@ export class SubscriptionsService {
               internetLogon.renewOnce || internetLogon.autoRenewEnabled;
 
             if (shouldRenew) {
-              const packageEntity = await this.packagesService.findById(
-                current.packageId,
-                manager,
-              );
-              if (!packageEntity) {
-                return;
-              }
-
-              const startDate = new Date(current.expireDate);
-              const expireDate = new Date(startDate);
-              expireDate.setDate(expireDate.getDate() + 30);
-
-              const renewedSubscription = await subscriptionsRepository.save(
-                subscriptionsRepository.create({
+              const renewedSubscription = await this.create(
+                {
                   userId: current.userId,
                   packageId: current.packageId,
-                  status: SubscriptionsStatusEnum.ACTIVE,
-                  startDate: startDate.toISOString().split('T')[0],
-                  expireDate: expireDate.toISOString().split('T')[0],
-                  subscriptionCost: packageEntity.price,
-                }),
+                },
+                manager,
+              );
+
+              await this.activate(
+                current.userId,
+                renewedSubscription.id,
+                manager,
               );
 
               await this.internetLogonService.completeRenewal(
