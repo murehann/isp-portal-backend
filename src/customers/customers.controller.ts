@@ -5,6 +5,7 @@ import {
   Param,
   ParseIntPipe,
   Patch,
+  Post,
   UseGuards,
 } from '@nestjs/common';
 import { CustomersService } from './customers.service';
@@ -45,5 +46,12 @@ export class CustomersController {
   @Patch(':userId/subscription/activate')
   activateSubscription(@Param('userId', ParseIntPipe) userId: number) {
     return this.customersService.activateSubscription(userId);
+  }
+
+  @Roles('ADMIN', 'SUPER_ADMIN')
+  @UseGuards(UserOwnershipGuard)
+  @Post(':userId/subscription/renew')
+  renewSubscription(@Param('userId', ParseIntPipe) userId: number) {
+    return this.customersService.renewSubscription(userId);
   }
 }

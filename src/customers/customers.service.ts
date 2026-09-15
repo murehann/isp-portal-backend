@@ -189,4 +189,18 @@ export class CustomersService {
       );
     });
   }
+
+  async renewSubscription(userId: number) {
+    const internetLogon = await this.internetLogonService.setRenewOnce(
+      userId,
+      true,
+    );
+
+    return {
+      userId,
+      currentSubscriptionId: internetLogon.currentSubscriptionId,
+      renewOnce: internetLogon.renewOnce,
+      autoRenewEnabled: internetLogon.autoRenewEnabled,
+    };
+  }
 }
