@@ -49,8 +49,11 @@ export class SubscriptionsService {
     return this.subscriptionsRepository.find();
   }
 
-  findById(subscriptionId: number) {
-    return this.subscriptionsRepository.findOneBy({
+  findById(
+    subscriptionId: number,
+    manager = this.subscriptionsRepository.manager,
+  ) {
+    return manager.getRepository(Subscriptions).findOneBy({
       id: subscriptionId,
     });
   }

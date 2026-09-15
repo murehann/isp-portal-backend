@@ -101,6 +101,19 @@ export class InternetLogonService {
     return this.internetLogonRepository.save(internetLogon);
   }
 
+  async setCurrentSubscription(
+    userId: number,
+    subscriptionId: number,
+    manager: EntityManager,
+  ) {
+    const internetLogonRepository = manager.getRepository(InternetLogon);
+    const internetLogon = await internetLogonRepository.findOneBy({ userId });
+    if (!internetLogon) throw new NotFoundException('Customer data not found!');
+
+    internetLogon.currentSubscriptionId = subscriptionId;
+    return internetLogonRepository.save(internetLogon);
+  }
+
   async completeRenewal(
     userId: number,
     subscriptionId: number,

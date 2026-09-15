@@ -9,6 +9,7 @@ import { UserRolesService } from 'src/user-roles/user-roles.service';
 import { InitializeCustomerDto } from 'src/user-management/dto';
 import { PackagesService } from 'src/packages/packages.service';
 import { UpdateInternetLogonDto } from '../internet-logon/dto/update-internet-logon.dto';
+import { SubscriptionsStatusEnum } from 'src/subscriptions/entities/subscriptions.entity';
 
 @Injectable()
 export class CustomersService {
@@ -182,6 +183,38 @@ export class CustomersService {
         throw new NotFoundException('Customer data not found!');
 
       const currentSubscriptionId = internetLogon.currentSubscriptionId;
+
+      const currentSubscription = await this.subscriptionsService.findById(
+        currentSubscriptionId,
+        manager,
+      );
+      if (!currentSubscription)
+        throw new NotFoundException('Subscription data not found!');
+
+      if (currentSubscription.status === SubscriptionsStatusEnum.EXPIRED) {
+        const newSubscription = await this.subscriptionsService.create(
+          {
+            userId,
+            packageId: currentSubscription.packageId,
+          },
+          manager,
+        );
+
+        const activatedSubscription = await this.subscriptionsService.activate(
+          userId,
+          newSubscription.id,
+          manager,
+        );
+
+        await this.internetLogonService.setCurrentSubscription(
+          userId,
+          activatedSubscription.id,
+          manager,
+        );
+
+        return activatedSubscription;
+      }
+
       return this.subscriptionsService.activate(
         userId,
         currentSubscriptionId,
