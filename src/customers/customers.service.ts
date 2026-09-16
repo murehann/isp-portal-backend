@@ -294,7 +294,7 @@ export class CustomersService {
 
       let subscription = currentSubscription;
 
-      if (currentSubscription.status === SubscriptionsStatusEnum.INACTIVE) {
+      if (currentSubscriptionStatus === SubscriptionsStatusEnum.INACTIVE) {
         subscription = await this.subscriptionsService.updatePackage(
           currentSubscription,
           requestedPackage.id,
