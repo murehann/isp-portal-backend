@@ -300,11 +300,14 @@ export class CustomersService {
           { userId, packageId: requestedPackage.id },
           manager,
         );
-        subscription = await this.subscriptionsService.activate(
-          userId,
-          newSubscription.id,
-          manager,
-        );
+        subscription = newSubscription;
+        if (currentSubscription.status === SubscriptionsStatusEnum.ACTIVE) {
+          subscription = await this.subscriptionsService.activate(
+            userId,
+            newSubscription.id,
+            manager,
+          );
+        }
         await this.internetLogonService.setCurrentSubscription(
           userId,
           subscription.id,
