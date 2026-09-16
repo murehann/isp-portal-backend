@@ -6,6 +6,7 @@ import { InternetLogonModule } from 'src/internet-logon/internet-logon.module';
 import { UserRolesModule } from 'src/user-roles/user-roles.module';
 import { CustomersController } from './customers.controller';
 import { PackagesModule } from 'src/packages/packages.module';
+import { RadiusModule } from 'src/radius/radius.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { PackagesModule } from 'src/packages/packages.module';
     InternetLogonModule,
     UserRolesModule,
     PackagesModule,
+    RadiusModule,
   ],
   controllers: [CustomersController],
   providers: [CustomersService],
