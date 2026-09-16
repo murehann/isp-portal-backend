@@ -58,6 +58,34 @@ export class SubscriptionsService {
     });
   }
 
+  findCurrentByUserId(
+    userId: number,
+    subscriptionId: number,
+    manager = this.subscriptionsRepository.manager,
+  ) {
+    return manager.getRepository(Subscriptions).findOneBy({
+      id: subscriptionId,
+      userId,
+    });
+  }
+
+  updatePackage(
+    subscription: Subscriptions,
+    packageId: number,
+    manager = this.subscriptionsRepository.manager,
+  ) {
+    subscription.packageId = packageId;
+    return manager.getRepository(Subscriptions).save(subscription);
+  }
+
+  deactivate(
+    subscription: Subscriptions,
+    manager = this.subscriptionsRepository.manager,
+  ) {
+    subscription.status = SubscriptionsStatusEnum.DEACTIVATED;
+    return manager.getRepository(Subscriptions).save(subscription);
+  }
+
   async activate(
     userId: number,
     subscriptionId: number,

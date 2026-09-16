@@ -9,10 +9,7 @@ import { UserRolesService } from 'src/user-roles/user-roles.service';
 import { InitializeCustomerDto } from 'src/user-management/dto';
 import { PackagesService } from 'src/packages/packages.service';
 import { UpdateInternetLogonDto } from '../internet-logon/dto/update-internet-logon.dto';
-import {
-  Subscriptions,
-  SubscriptionsStatusEnum,
-} from 'src/subscriptions/entities/subscriptions.entity';
+import { SubscriptionsStatusEnum } from 'src/subscriptions/entities/subscriptions.entity';
 
 @Injectable()
 export class CustomersService {
@@ -268,15 +265,12 @@ export class CustomersService {
       if (!internetLogon)
         throw new NotFoundException('Customer data not found!');
 
-      const subscriptionsRepository = manager.getRepository(Subscriptions);
-      const currentSubscription = await subscriptionsRepository
-        .createQueryBuilder('subscription')
-        .where('subscription.id = :subscriptionId', {
-          subscriptionId: internetLogon.currentSubscriptionId,
-        })
-        .andWhere('subscription.userId = :userId', { userId })
-        .setLock('pessimistic_write')
-        .getOne();
+      const currentSubscription =
+        await this.subscriptionsService.findCurrentByUserId(
+          userId,
+          internetLogon.currentSubscriptionId,
+          manager,
+        );
       if (!currentSubscription)
         throw new NotFoundException('Subscription data not found!');
 
@@ -290,12 +284,17 @@ export class CustomersService {
       let subscription = currentSubscription;
 
       if (currentSubscription.status === SubscriptionsStatusEnum.INACTIVE) {
-        currentSubscription.packageId = requestedPackage.id;
-        subscription = await subscriptionsRepository.save(currentSubscription);
+        subscription = await this.subscriptionsService.updatePackage(
+          currentSubscription,
+          requestedPackage.id,
+          manager,
+        );
       } else {
         if (currentSubscription.status === SubscriptionsStatusEnum.ACTIVE) {
-          currentSubscription.status = SubscriptionsStatusEnum.DEACTIVATED;
-          await subscriptionsRepository.save(currentSubscription);
+          await this.subscriptionsService.deactivate(
+            currentSubscription,
+            manager,
+          );
         }
 
         const newSubscription = await this.subscriptionsService.create(
@@ -314,25 +313,29 @@ export class CustomersService {
         );
       }
 
-      const packageEntity = await this.packagesService.findById(
-        subscription.packageId,
-        manager,
-      );
-      if (!packageEntity) throw new NotFoundException('Package not found!');
-
       return {
+        userId,
         subscriptionId: subscription.id,
         previousSubscriptionId,
         status: subscription.status,
-        effectiveAt: subscription.startDate
-          ? new Date(`${subscription.startDate}T00:00:00.000Z`).toISOString()
-          : null,
+        startDate: subscription.startDate,
+        expireDate: subscription.expireDate,
         package: {
-          id: packageEntity.id,
-          name: packageEntity.name,
-          downloadMbps: packageEntity.downloadBandwidthMbps,
-          uploadMbps: packageEntity.uploadBandwidthMbps,
-          price: packageEntity.price,
+          id: requestedPackage.id,
+          name: requestedPackage.name,
+          downloadMbps: requestedPackage.downloadBandwidthMbps,
+          uploadMbps: requestedPackage.uploadBandwidthMbps,
+          price: requestedPackage.price,
+        },
+        internetLogon: {
+          id: internetLogon.id,
+          username: internetLogon.internetLogonUsername,
+          password: internetLogon.internetLogonPassword,
+          status: internetLogon.status,
+          registeredMAC: internetLogon.registeredDeviceMAC,
+          renewOnce: internetLogon.renewOnce,
+          autoRenewEnabled: internetLogon.autoRenewEnabled,
+          currentSubscriptionId: subscription.id,
         },
         changedAt: new Date().toISOString(),
       };
