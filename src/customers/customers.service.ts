@@ -144,13 +144,14 @@ export class CustomersService {
         connectionStatus: internetLogon.status,
         registeredMAC: internetLogon.registeredDeviceMAC,
         renewOnce: internetLogon.renewOnce,
-        autoRenew: internetLogon.autoRenewEnabled,
+        autoRenewEnabled: internetLogon.autoRenewEnabled,
       },
       subscription: {
         id: currentSubscription.id,
         status: currentSubscription.status,
         startDate: currentSubscription.startDate,
         expireDate: currentSubscription.expireDate,
+        deactivatedAt: currentSubscription.deactivatedAt,
         package: {
           id: currentPackage.id,
           name: currentPackage.name,
@@ -334,14 +335,14 @@ export class CustomersService {
           status: subscription.status,
           startDate: subscription.startDate,
           expireDate: subscription.expireDate,
-          packageId: subscription.packageId,
-        },
-        package: {
-          id: requestedPackage.id,
-          name: requestedPackage.name,
-          downloadMbps: requestedPackage.downloadBandwidthMbps,
-          uploadMbps: requestedPackage.uploadBandwidthMbps,
-          price: requestedPackage.price,
+          deactivatedAt: subscription.deactivatedAt,
+          package: {
+            id: requestedPackage.id,
+            name: requestedPackage.name,
+            downloadMbps: requestedPackage.downloadBandwidthMbps,
+            uploadMbps: requestedPackage.uploadBandwidthMbps,
+            price: requestedPackage.price,
+          },
         },
         internetLogon: {
           id: internetLogon.id,
