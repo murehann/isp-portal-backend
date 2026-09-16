@@ -284,6 +284,8 @@ export class CustomersService {
           'New package cannot be same as current package!',
         );
 
+      const currentSubscriptionStatus = currentSubscription.status;
+
       const requestedPackage = await this.packagesService.findById(
         packageId,
         manager,
@@ -311,7 +313,7 @@ export class CustomersService {
           manager,
         );
         subscription = newSubscription;
-        if (currentSubscription.status === SubscriptionsStatusEnum.ACTIVE) {
+        if (currentSubscriptionStatus === SubscriptionsStatusEnum.ACTIVE) {
           subscription = await this.subscriptionsService.activate(
             userId,
             newSubscription.id,
