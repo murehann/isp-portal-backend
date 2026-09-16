@@ -83,6 +83,7 @@ export class SubscriptionsService {
     manager = this.subscriptionsRepository.manager,
   ) {
     subscription.status = SubscriptionsStatusEnum.DEACTIVATED;
+    subscription.deactivatedAt = new Date();
     return manager.getRepository(Subscriptions).save(subscription);
   }
 

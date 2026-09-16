@@ -54,6 +54,9 @@ export class Subscriptions {
   @UpdateDateColumn({ type: 'datetime' })
   updatedAt!: Date;
 
+  @Column({ type: 'datetime', nullable: true })
+  deactivatedAt!: Date | null;
+
   @DeleteDateColumn({ type: 'datetime' })
   deletedAt!: Date | null;
 
