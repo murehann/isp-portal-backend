@@ -15,6 +15,7 @@ export enum SubscriptionsStatusEnum {
   ACTIVE = 'ACTIVE',
   EXPIRED = 'EXPIRED',
   INACTIVE = 'INACTIVE',
+  DEACTIVATED = 'DEACTIVATED',
 }
 
 @Entity()
