@@ -139,6 +139,8 @@ export class CustomersService {
         password: internetLogon.internetLogonPassword,
         connectionStatus: internetLogon.status,
         registeredMAC: internetLogon.registeredDeviceMAC,
+        renewOnce: internetLogon.renewOnce,
+        autoRenew: internetLogon.autoRenewEnabled,
       },
       subscription: {
         id: currentSubscription.id,
