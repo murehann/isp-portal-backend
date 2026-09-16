@@ -9,7 +9,10 @@ import { UserRolesService } from 'src/user-roles/user-roles.service';
 import { InitializeCustomerDto } from 'src/user-management/dto';
 import { PackagesService } from 'src/packages/packages.service';
 import { UpdateInternetLogonDto } from '../internet-logon/dto/update-internet-logon.dto';
-import { SubscriptionsStatusEnum } from 'src/subscriptions/entities/subscriptions.entity';
+import {
+  Subscriptions,
+  SubscriptionsStatusEnum,
+} from 'src/subscriptions/entities/subscriptions.entity';
 
 @Injectable()
 export class CustomersService {
@@ -251,5 +254,88 @@ export class CustomersService {
       renewOnce: internetLogon.renewOnce,
       autoRenewEnabled: internetLogon.autoRenewEnabled,
     };
+  }
+
+  async changeSubscriptionPackage(userId: number, packageId: number) {
+    return this.dataSource.transaction(async (manager) => {
+      const user = await this.usersService.findById(userId, manager);
+      if (!user) throw new NotFoundException('User not found!');
+
+      const internetLogon = await this.internetLogonService.findByUserId(
+        userId,
+        manager,
+      );
+      if (!internetLogon)
+        throw new NotFoundException('Customer data not found!');
+
+      const subscriptionsRepository = manager.getRepository(Subscriptions);
+      const currentSubscription = await subscriptionsRepository
+        .createQueryBuilder('subscription')
+        .where('subscription.id = :subscriptionId', {
+          subscriptionId: internetLogon.currentSubscriptionId,
+        })
+        .andWhere('subscription.userId = :userId', { userId })
+        .setLock('pessimistic_write')
+        .getOne();
+      if (!currentSubscription)
+        throw new NotFoundException('Subscription data not found!');
+
+      const requestedPackage = await this.packagesService.findById(
+        packageId,
+        manager,
+      );
+      if (!requestedPackage) throw new NotFoundException('Package not found!');
+
+      const previousSubscriptionId = currentSubscription.id;
+      let subscription = currentSubscription;
+
+      if (currentSubscription.status === SubscriptionsStatusEnum.INACTIVE) {
+        currentSubscription.packageId = requestedPackage.id;
+        subscription = await subscriptionsRepository.save(currentSubscription);
+      } else {
+        if (currentSubscription.status === SubscriptionsStatusEnum.ACTIVE) {
+          currentSubscription.status = SubscriptionsStatusEnum.DEACTIVATED;
+          await subscriptionsRepository.save(currentSubscription);
+        }
+
+        const newSubscription = await this.subscriptionsService.create(
+          { userId, packageId: requestedPackage.id },
+          manager,
+        );
+        subscription = await this.subscriptionsService.activate(
+          userId,
+          newSubscription.id,
+          manager,
+        );
+        await this.internetLogonService.setCurrentSubscription(
+          userId,
+          subscription.id,
+          manager,
+        );
+      }
+
+      const packageEntity = await this.packagesService.findById(
+        subscription.packageId,
+        manager,
+      );
+      if (!packageEntity) throw new NotFoundException('Package not found!');
+
+      return {
+        subscriptionId: subscription.id,
+        previousSubscriptionId,
+        status: subscription.status,
+        effectiveAt: subscription.startDate
+          ? new Date(`${subscription.startDate}T00:00:00.000Z`).toISOString()
+          : null,
+        package: {
+          id: packageEntity.id,
+          name: packageEntity.name,
+          downloadMbps: packageEntity.downloadBandwidthMbps,
+          uploadMbps: packageEntity.uploadBandwidthMbps,
+          price: packageEntity.price,
+        },
+        changedAt: new Date().toISOString(),
+      };
+    });
   }
 }
