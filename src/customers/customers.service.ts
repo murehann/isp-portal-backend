@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { UsersService } from 'src/users/users.service';
 import { CreateCustomerDto } from '../user-management/dto/create-customer.dto';
@@ -271,8 +275,14 @@ export class CustomersService {
           internetLogon.currentSubscriptionId,
           manager,
         );
+
       if (!currentSubscription)
         throw new NotFoundException('Subscription data not found!');
+
+      if (currentSubscription.packageId === packageId)
+        throw new BadRequestException(
+          'New package cannot be same as current package!',
+        );
 
       const requestedPackage = await this.packagesService.findById(
         packageId,
