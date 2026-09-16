@@ -280,7 +280,6 @@ export class CustomersService {
       );
       if (!requestedPackage) throw new NotFoundException('Package not found!');
 
-      const previousSubscriptionId = currentSubscription.id;
       let subscription = currentSubscription;
 
       if (currentSubscription.status === SubscriptionsStatusEnum.INACTIVE) {
@@ -315,11 +314,13 @@ export class CustomersService {
 
       return {
         userId,
-        subscriptionId: subscription.id,
-        previousSubscriptionId,
-        status: subscription.status,
-        startDate: subscription.startDate,
-        expireDate: subscription.expireDate,
+        subscription: {
+          id: subscription.id,
+          status: subscription.status,
+          startDate: subscription.startDate,
+          expireDate: subscription.expireDate,
+          packageId: subscription.packageId,
+        },
         package: {
           id: requestedPackage.id,
           name: requestedPackage.name,
@@ -329,15 +330,12 @@ export class CustomersService {
         },
         internetLogon: {
           id: internetLogon.id,
-          username: internetLogon.internetLogonUsername,
-          password: internetLogon.internetLogonPassword,
           status: internetLogon.status,
           registeredMAC: internetLogon.registeredDeviceMAC,
           renewOnce: internetLogon.renewOnce,
           autoRenewEnabled: internetLogon.autoRenewEnabled,
           currentSubscriptionId: subscription.id,
         },
-        changedAt: new Date().toISOString(),
       };
     });
   }
