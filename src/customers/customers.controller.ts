@@ -52,6 +52,13 @@ export class CustomersController {
 
   @Roles('ADMIN', 'SUPER_ADMIN')
   @UseGuards(UserOwnershipGuard)
+  @Patch(':userId/subscription/deactivate')
+  deactivateSubscription(@Param('userId', ParseIntPipe) userId: number) {
+    return this.customersService.deactivateSubscription(userId);
+  }
+
+  @Roles('ADMIN', 'SUPER_ADMIN')
+  @UseGuards(UserOwnershipGuard)
   @Patch(':userId/subscription/renew')
   renewSubscription(@Param('userId', ParseIntPipe) userId: number) {
     return this.customersService.renewSubscription(userId);

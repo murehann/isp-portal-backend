@@ -230,6 +230,35 @@ export class CustomersService {
     });
   }
 
+  async deactivateSubscription(userId: number) {
+    return this.dataSource.transaction(async (manager) => {
+      const user = await this.usersService.findById(userId, manager);
+      if (!user) throw new NotFoundException('User not found');
+
+      const internetLogon = await this.internetLogonService.findByUserId(
+        userId,
+        manager,
+      );
+      if (!internetLogon)
+        throw new NotFoundException('Customer data not found!');
+
+      const currentSubscription = await this.subscriptionsService.findById(
+        internetLogon.currentSubscriptionId,
+        manager,
+      );
+      if (!currentSubscription)
+        throw new NotFoundException('Subscription not found!');
+
+      const deactivatedSubscription =
+        await this.subscriptionsService.deactivate(
+          currentSubscription,
+          manager,
+        );
+
+      return deactivatedSubscription;
+    });
+  }
+
   async renewSubscription(userId: number) {
     const internetLogon = await this.internetLogonService.setRenewOnce(
       userId,
