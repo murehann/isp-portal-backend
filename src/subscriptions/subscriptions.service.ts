@@ -13,6 +13,7 @@ import { EntityManager, Repository } from 'typeorm';
 import { CreateSubscriptionDto } from './dto/create-subscription.dto';
 import { PackagesService } from 'src/packages/packages.service';
 import { InternetLogonService } from 'src/internet-logon/internet-logon.service';
+import { RadiusService } from 'src/radius/radius.service';
 
 @Injectable()
 export class SubscriptionsService {
@@ -23,6 +24,7 @@ export class SubscriptionsService {
     private readonly subscriptionsRepository: Repository<Subscriptions>,
     private readonly packagesService: PackagesService,
     private readonly internetLogonService: InternetLogonService,
+    private readonly radiusService: RadiusService,
   ) {}
 
   async create(
@@ -205,9 +207,30 @@ export class SubscriptionsService {
                   manager,
                 );
 
+                const activePackage = await this.packagesService.findById(
+                  renewedSubscription.packageId,
+                  manager,
+                );
+                if (!activePackage)
+                  throw new NotFoundException('Active Package not found!');
+
+                await this.radiusService.activate(
+                  {
+                    username: internetLogon.internetLogonUsername,
+                    uploadMbps: activePackage.uploadBandwidthMbps,
+                    downloadMbps: activePackage.downloadBandwidthMbps,
+                  },
+                  manager,
+                );
+
                 await this.internetLogonService.completeRenewal(
                   current.userId,
                   renewedSubscription.id,
+                  manager,
+                );
+              } else {
+                await this.radiusService.deactivate(
+                  internetLogon.internetLogonUsername,
                   manager,
                 );
               }
