@@ -389,7 +389,17 @@ export class CustomersService {
             newSubscription.id,
             manager,
           );
+
+          await this.radiusService.activate(
+            {
+              username: internetLogon.internetLogonUsername,
+              downloadMbps: requestedPackage.downloadBandwidthMbps,
+              uploadMbps: requestedPackage.uploadBandwidthMbps,
+            },
+            manager,
+          );
         }
+
         await this.internetLogonService.setCurrentSubscription(
           userId,
           subscription.id,
