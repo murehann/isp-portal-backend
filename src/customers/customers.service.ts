@@ -14,6 +14,7 @@ import { InitializeCustomerDto } from 'src/user-management/dto';
 import { PackagesService } from 'src/packages/packages.service';
 import { UpdateInternetLogonDto } from '../internet-logon/dto/update-internet-logon.dto';
 import { SubscriptionsStatusEnum } from 'src/subscriptions/entities/subscriptions.entity';
+import { RadiusService } from 'src/radius/radius.service';
 
 @Injectable()
 export class CustomersService {
@@ -24,6 +25,7 @@ export class CustomersService {
     private readonly internetLogonService: InternetLogonService,
     private readonly userRolesService: UserRolesService,
     private readonly packagesService: PackagesService,
+    private readonly radiusService: RadiusService,
   ) {}
 
   async createCustomer(createCustomerDto: CreateCustomerDto) {
@@ -57,6 +59,14 @@ export class CustomersService {
           userId: newUser.id,
           userEmail: newUser.email,
           currentSubscriptionId: newSubscription.id,
+        },
+        manager,
+      );
+
+      await this.radiusService.createUser(
+        {
+          username: newInternetLogon.internetLogonUsername,
+          password: newInternetLogon.internetLogonPassword,
         },
         manager,
       );
