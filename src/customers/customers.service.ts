@@ -226,6 +226,18 @@ export class CustomersService {
           manager,
         );
 
+        const subscribedPackage = await this.packagesService.findById(
+          activatedSubscription.packageId,
+        );
+        if (!subscribedPackage)
+          throw new NotFoundException('Package not found!');
+
+        await this.radiusService.activate({
+          username: internetLogon.internetLogonUsername,
+          uploadMbps: subscribedPackage.uploadBandwidthMbps,
+          downloadMbps: subscribedPackage.downloadBandwidthMbps,
+        });
+
         await this.internetLogonService.setCurrentSubscription(
           userId,
           activatedSubscription.id,
@@ -234,6 +246,17 @@ export class CustomersService {
 
         return activatedSubscription;
       }
+
+      const subscribedPackage = await this.packagesService.findById(
+        currentSubscription.packageId,
+      );
+      if (!subscribedPackage) throw new NotFoundException('Package not found!');
+
+      await this.radiusService.activate({
+        username: internetLogon.internetLogonUsername,
+        uploadMbps: subscribedPackage.uploadBandwidthMbps,
+        downloadMbps: subscribedPackage.downloadBandwidthMbps,
+      });
 
       return this.subscriptionsService.activate(
         userId,
