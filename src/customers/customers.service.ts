@@ -198,7 +198,10 @@ export class CustomersService {
       if (!currentSubscription)
         throw new NotFoundException('Subscription data not found!');
 
-      if (currentSubscription.status === SubscriptionsStatusEnum.EXPIRED) {
+      if (
+        currentSubscription.status === SubscriptionsStatusEnum.EXPIRED ||
+        currentSubscription.status === SubscriptionsStatusEnum.DEACTIVATED
+      ) {
         const newSubscription = await this.subscriptionsService.create(
           {
             userId,
