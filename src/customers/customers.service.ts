@@ -290,6 +290,10 @@ export class CustomersService {
           currentSubscription,
           manager,
         );
+      await this.radiusService.deactivate(
+        internetLogon.internetLogonUsername,
+        manager,
+      );
 
       return deactivatedSubscription;
     });
