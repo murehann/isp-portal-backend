@@ -4,12 +4,18 @@ import {
   HttpCode,
   HttpStatus,
   Post,
+  Req,
   Res,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { Public } from 'src/common/decorators';
 import { type Response } from 'express';
+import {
+  type AuthenticatedRequest,
+  type RequestWithRefreshCookie,
+} from 'src/common/Types';
 
 const REFRESH_TOKEN_TTL_MS = 24 * 60 * 60 * 1000;
 
@@ -42,5 +48,32 @@ export class AuthController {
     this.setRefreshTokenCookie(res, refreshToken);
 
     return rest;
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Public()
+  @Post('refresh')
+  async refresh(@Req() req: RequestWithRefreshCookie) {
+    const refreshToken: string | undefined = req.cookies.refreshToken;
+    if (!refreshToken) throw new UnauthorizedException('No refresh token.');
+
+    return this.authService.refresh(refreshToken);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('logout')
+  async logout(
+    @Req() req: AuthenticatedRequest,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const refreshToken = req.cookies.refreshToken;
+    const userId = req.user.sub;
+
+    if (refreshToken && userId) {
+      await this.authService.logout(userId, refreshToken);
+    }
+
+    res.clearCookie('refreshToken', { path: '/auth' });
+    return { success: true };
   }
 }
