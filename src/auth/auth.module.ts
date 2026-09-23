@@ -19,7 +19,7 @@ import { UserOwnershipGuard } from './guards/user-ownership.guard';
       useFactory: (configService: ConfigService) => {
         return {
           global: true,
-          secret: configService.getOrThrow<string>('JWT_SECRET'),
+          secret: configService.getOrThrow<string>('JWT_ACCESS_SECRET'),
           signOptions: {
             expiresIn: '15m',
           },
