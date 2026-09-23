@@ -13,6 +13,7 @@ import { UserRole } from 'src/user-roles/entities/user-role.entity';
 import { RefreshTokenPayloadDto } from './dto/refresh-token-payload.dto';
 import { SwitchRoleResponseDto } from './dto/switch-role-response.dto';
 import { RefreshResponseDto } from './dto/refresh-response.dto';
+import { Cron } from '@nestjs/schedule';
 
 @Injectable()
 export class AuthService {
@@ -140,5 +141,11 @@ export class AuthService {
     });
 
     return { currentRoleCode: dto.roleCode, accessToken };
+  }
+
+  @Cron('0 3 * * *', { name: 'REFRESH_TOKEN_CLEANUP' }) // Runs daily at 3 AM
+  async cleanupRefreshTokens() {
+    const deleted = await this.refreshTokensService.cleanup();
+    console.log(`Cleaned up ${deleted} expired/revoked refresh tokens`);
   }
 }

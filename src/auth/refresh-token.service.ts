@@ -51,4 +51,19 @@ export class RefreshTokensService {
       { revoked: true },
     );
   }
+
+  async cleanup(): Promise<number> {
+    const result = await this.refreshTokenRepository.delete({
+      revoked: true,
+    });
+
+    const expiredResult = await this.refreshTokenRepository
+      .createQueryBuilder()
+      .delete()
+      .from(RefreshToken)
+      .where('expiresAt < :now', { now: new Date() })
+      .execute();
+
+    return (result.affected || 0) + (expiredResult.affected || 0);
+  }
 }
