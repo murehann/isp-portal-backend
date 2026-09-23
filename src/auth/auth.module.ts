@@ -21,7 +21,7 @@ import { UserOwnershipGuard } from './guards/user-ownership.guard';
           global: true,
           secret: configService.getOrThrow<string>('JWT_SECRET'),
           signOptions: {
-            expiresIn: '1d', // TODO: change 1d (One day) to proper expiry time
+            expiresIn: '15m',
           },
         };
       },
