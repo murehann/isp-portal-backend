@@ -11,6 +11,7 @@ import { UserRolesModule } from 'src/user-roles/user-roles.module';
 import { UserOwnershipGuard } from './guards/user-ownership.guard';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { RefreshToken } from './entities/refresh-token.entity';
+import { RefreshTokensService } from './refresh-token.service';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { RefreshToken } from './entities/refresh-token.entity';
       useClass: RolesGuard,
     },
     UserOwnershipGuard,
+    RefreshTokensService,
   ],
   exports: [AuthService, UserOwnershipGuard],
 })
