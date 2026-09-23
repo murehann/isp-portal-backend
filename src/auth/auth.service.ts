@@ -13,6 +13,7 @@ import { RefreshTokensService } from './refresh-token.service';
 import { UserRole } from 'src/user-roles/entities/user-role.entity';
 import { RefreshTokenPayloadDto } from './dto/refresh-token-payload.dto';
 import { SwitchRoleResponseDto } from './dto/switch-role-response.dto';
+import { RefreshResponseDto } from './dto/refresh-response.dto';
 
 @Injectable()
 export class AuthService {
@@ -75,7 +76,10 @@ export class AuthService {
     return { ...tokenPayload, accessToken, refreshToken };
   }
 
-  async refresh(refreshToken: string): Promise<{ accessToken: string }> {
+  async refresh(
+    currentRoleCode: string,
+    refreshToken: string,
+  ): Promise<RefreshResponseDto> {
     let payload: RefreshTokenPayloadDto;
     try {
       payload = await this.jwtService.verifyAsync(refreshToken, {
@@ -95,7 +99,12 @@ export class AuthService {
       );
 
     const userRoles = await this.userRolesService.findByUserId(payload.sub);
-    const currentRoleCode = this.resolveInitialRoleCode(userRoles);
+
+    const isAssignedRole = userRoles.some(
+      (userRole) => userRole.role.code === currentRoleCode,
+    );
+    if (!isAssignedRole)
+      throw new UnauthorizedException('Role not assigned to this user.');
 
     const accessToken = await this.jwtService.signAsync({
       sub: payload.sub,

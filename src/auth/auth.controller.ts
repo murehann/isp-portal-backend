@@ -17,6 +17,7 @@ import {
   type RequestWithRefreshCookie,
 } from 'src/common/Types';
 import { SwitchRoleDto } from './dto/switch-role.dto';
+import { RefreshDto } from './dto/refresh.dto';
 
 const REFRESH_TOKEN_TTL_MS = 24 * 60 * 60 * 1000;
 
@@ -54,11 +55,14 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Public()
   @Post('refresh')
-  async refresh(@Req() req: RequestWithRefreshCookie) {
+  async refresh(
+    @Body() body: RefreshDto,
+    @Req() req: RequestWithRefreshCookie,
+  ) {
     const refreshToken: string | undefined = req.cookies.refreshToken;
     if (!refreshToken) throw new UnauthorizedException('No refresh token.');
 
-    return this.authService.refresh(refreshToken);
+    return this.authService.refresh(body.currentRoleCode, refreshToken);
   }
 
   @HttpCode(HttpStatus.OK)
