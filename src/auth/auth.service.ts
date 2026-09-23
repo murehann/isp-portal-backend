@@ -7,6 +7,7 @@ import * as argon2 from 'argon2';
 import { UserRolesService } from 'src/user-roles/user-roles.service';
 import { RefreshTokensService } from './refresh-token.service';
 import { UserRole } from 'src/user-roles/entities/user-role.entity';
+import { RefreshTokenPayloadDto } from './dto/refresh-token-payload.dto';
 
 @Injectable()
 export class AuthService {
@@ -70,7 +71,7 @@ export class AuthService {
   }
 
   async refresh(refreshToken: string): Promise<{ accessToken: string }> {
-    let payload: { sub: number };
+    let payload: RefreshTokenPayloadDto;
     try {
       payload = await this.jwtService.verifyAsync(refreshToken, {
         secret: this.configService.getOrThrow<string>('JWT_REFRESH_SECRET'),
