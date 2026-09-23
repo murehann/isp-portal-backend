@@ -9,6 +9,8 @@ import { APP_GUARD } from '@nestjs/core';
 import { RolesGuard } from './guards/roles.guard';
 import { UserRolesModule } from 'src/user-roles/user-roles.module';
 import { UserOwnershipGuard } from './guards/user-ownership.guard';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { RefreshToken } from './entities/refresh-token.entity';
 
 @Module({
   imports: [
@@ -26,6 +28,7 @@ import { UserOwnershipGuard } from './guards/user-ownership.guard';
         };
       },
     }),
+    TypeOrmModule.forFeature([RefreshToken]),
   ],
   controllers: [AuthController],
   providers: [
