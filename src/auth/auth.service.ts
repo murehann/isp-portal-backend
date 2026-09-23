@@ -1,9 +1,12 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from 'src/users/users.service';
 import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 import { LoginResponseDto } from './dto/login-response.dto';
 import * as argon2 from 'argon2';
 import { UserRolesService } from 'src/user-roles/user-roles.service';
+import { RefreshTokensService } from './refresh-token.service';
+import { UserRole } from 'src/user-roles/entities/user-role.entity';
 
 @Injectable()
 export class AuthService {
@@ -11,7 +14,37 @@ export class AuthService {
     private readonly userService: UsersService,
     private readonly jwtService: JwtService,
     private readonly userRolesService: UserRolesService,
+    private readonly refreshTokensService: RefreshTokensService,
+    private readonly configService: ConfigService,
   ) {}
+
+  private resolveInitialRoleCode(userRoles: UserRole[]): string {
+    if (userRoles.length === 0)
+      throw new UnauthorizedException('User has no assigned role!');
+
+    return userRoles
+      .map((userRole) => userRole.role)
+      .reduce((lowestLevelRole, role) =>
+        lowestLevelRole.level < role.level ? lowestLevelRole : role,
+      ).code;
+  }
+
+  private async issueRefreshToken(userId: number): Promise<string> {
+    const refreshToken = await this.jwtService.signAsync(
+      { sub: userId },
+      {
+        secret: this.configService.getOrThrow<string>('JWT_REFRESH_SECRET'),
+        expiresIn: '1d',
+      },
+    );
+
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 1);
+    await this.refreshTokensService.create(userId, refreshToken, expiresAt);
+
+    return refreshToken;
+  }
+
   async login(email: string, password: string): Promise<LoginResponseDto> {
     const user = await this.userService.findByEmail(email);
 
@@ -23,24 +56,16 @@ export class AuthService {
       throw new UnauthorizedException('Invalid email or password!');
 
     const userRoles = await this.userRolesService.findByUserId(user.id);
-
-    if (userRoles.length === 0)
-      throw new UnauthorizedException('User has no assigned role!');
-
-    const currentRoleCode = userRoles
-      .map((userRole) => userRole.role)
-      .reduce((lowestLevelRole, role) =>
-        lowestLevelRole.level < role.level ? lowestLevelRole : role,
-      ).code;
+    const currentRoleCode = this.resolveInitialRoleCode(userRoles);
 
     const tokenPayload = {
       sub: user.id,
       currentRoleCode,
     };
 
-    return {
-      ...tokenPayload,
-      accessToken: await this.jwtService.signAsync(tokenPayload),
-    };
+    const accessToken = await this.jwtService.signAsync(tokenPayload);
+    const refreshToken = await this.issueRefreshToken(user.id);
+
+    return { ...tokenPayload, accessToken, refreshToken };
   }
 }
