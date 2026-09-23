@@ -68,4 +68,38 @@ export class AuthService {
 
     return { ...tokenPayload, accessToken, refreshToken };
   }
+
+  async refresh(refreshToken: string): Promise<{ accessToken: string }> {
+    let payload: { sub: number };
+    try {
+      payload = await this.jwtService.verifyAsync(refreshToken, {
+        secret: this.configService.getOrThrow<string>('JWT_REFRESH_SECRET'),
+      });
+    } catch {
+      throw new UnauthorizedException('Invalid or expired refresh token.');
+    }
+
+    const stored = await this.refreshTokensService.findValid(
+      payload.sub,
+      refreshToken,
+    );
+    if (!stored)
+      throw new UnauthorizedException(
+        'Refresh token revoked or not recognized.',
+      );
+
+    const userRoles = await this.userRolesService.findByUserId(payload.sub);
+    const currentRoleCode = this.resolveInitialRoleCode(userRoles);
+
+    const accessToken = await this.jwtService.signAsync({
+      sub: payload.sub,
+      currentRoleCode,
+    });
+
+    return { accessToken };
+  }
+
+  async logout(userId: number, refreshToken: string): Promise<void> {
+    await this.refreshTokensService.revoke(userId, refreshToken);
+  }
 }
