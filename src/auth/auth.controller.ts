@@ -18,8 +18,9 @@ import {
 } from 'src/common/Types';
 import { SwitchRoleDto } from './dto/switch-role.dto';
 import { RefreshDto } from './dto/refresh.dto';
+import { LoginResponseDto } from './dto/login-response.dto';
 
-const REFRESH_TOKEN_TTL_MS = 24 * 60 * 60 * 1000;
+const REFRESH_TOKEN_TTL_MS = 24 * 60 * 60 * 1000 * 7;
 
 @Controller('auth')
 export class AuthController {
@@ -41,7 +42,7 @@ export class AuthController {
   async login(
     @Body() loginDto: LoginDto,
     @Res({ passthrough: true }) res: Response,
-  ) {
+  ): Promise<LoginResponseDto> {
     const { refreshToken, ...rest } = await this.authService.login(
       loginDto.email,
       loginDto.password,

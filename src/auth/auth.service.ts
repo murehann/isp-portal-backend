@@ -6,7 +6,6 @@ import {
 import { UsersService } from 'src/users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { LoginResponseDto } from './dto/login-response.dto';
 import * as argon2 from 'argon2';
 import { UserRolesService } from 'src/user-roles/user-roles.service';
 import { RefreshTokensService } from './refresh-token.service';
@@ -41,18 +40,18 @@ export class AuthService {
       { sub: userId },
       {
         secret: this.configService.getOrThrow<string>('JWT_REFRESH_SECRET'),
-        expiresIn: '1d',
+        expiresIn: '7d',
       },
     );
 
     const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + 1);
+    expiresAt.setDate(expiresAt.getDate() + 7);
     await this.refreshTokensService.create(userId, refreshToken, expiresAt);
 
     return refreshToken;
   }
 
-  async login(email: string, password: string): Promise<LoginResponseDto> {
+  async login(email: string, password: string) {
     const user = await this.userService.findByEmail(email);
 
     if (!user) throw new UnauthorizedException('Invalid email or password!');
