@@ -1,6 +1,6 @@
 import { AuthTokenPayloadDto } from 'src/auth/dto/auth-token-payload.dto';
-import { type Request } from 'express';
+import { RequestWithRefreshCookie } from './request-with-refresh-cookie';
 
-export interface AuthenticatedRequest extends Request {
+export interface AuthenticatedRequest extends RequestWithRefreshCookie {
   user: AuthTokenPayloadDto;
 }
