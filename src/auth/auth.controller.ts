@@ -16,6 +16,7 @@ import {
   type AuthenticatedRequest,
   type RequestWithRefreshCookie,
 } from 'src/common/Types';
+import { SwitchRoleDto } from './dto/switch-role.dto';
 
 const REFRESH_TOKEN_TTL_MS = 24 * 60 * 60 * 1000;
 
@@ -75,5 +76,18 @@ export class AuthController {
 
     res.clearCookie('refreshToken', { path: '/auth' });
     return { success: true };
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('switch-role')
+  async switchRole(
+    @Req() req: AuthenticatedRequest,
+    @Body() switchRoleDto: SwitchRoleDto,
+  ) {
+    return this.authService.switchRole({
+      userId: req.user.sub,
+      currentRoleCode: req.user.currentRoleCode,
+      roleCode: switchRoleDto.roleCode,
+    });
   }
 }

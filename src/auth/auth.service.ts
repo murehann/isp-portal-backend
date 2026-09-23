@@ -1,4 +1,8 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { UsersService } from 'src/users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
@@ -8,6 +12,7 @@ import { UserRolesService } from 'src/user-roles/user-roles.service';
 import { RefreshTokensService } from './refresh-token.service';
 import { UserRole } from 'src/user-roles/entities/user-role.entity';
 import { RefreshTokenPayloadDto } from './dto/refresh-token-payload.dto';
+import { SwitchRoleResponseDto } from './dto/switch-role-response.dto';
 
 @Injectable()
 export class AuthService {
@@ -102,5 +107,30 @@ export class AuthService {
 
   async logout(userId: number, refreshToken: string): Promise<void> {
     await this.refreshTokensService.revoke(userId, refreshToken);
+  }
+
+  async switchRole(dto: {
+    userId: number;
+    currentRoleCode: string;
+    roleCode: string;
+  }): Promise<SwitchRoleResponseDto> {
+    if (dto.currentRoleCode === dto.roleCode)
+      throw new BadRequestException('Already signedin with this role!');
+
+    const userRoles = await this.userRolesService.findByUserId(dto.userId);
+
+    const isAssignedRole = userRoles.some(
+      (userRole) => userRole.role.code === dto.roleCode,
+    );
+
+    if (!isAssignedRole)
+      throw new UnauthorizedException('Role not assigned to this user.');
+
+    const accessToken = await this.jwtService.signAsync({
+      sub: dto.userId,
+      currentRoleCode: dto.roleCode,
+    });
+
+    return { currentRoleCode: dto.roleCode, accessToken };
   }
 }
