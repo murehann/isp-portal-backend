@@ -10,10 +10,10 @@ import * as argon2 from 'argon2';
 import { UserRolesService } from 'src/user-roles/user-roles.service';
 import { RefreshTokensService } from './refresh-token.service';
 import { UserRole } from 'src/user-roles/entities/user-role.entity';
-import { RefreshTokenPayloadDto } from './dto/refresh-token-payload.dto';
 import { SwitchRoleResponseDto } from './dto/switch-role-response.dto';
 import { RefreshResponseDto } from './dto/refresh-response.dto';
 import { Cron } from '@nestjs/schedule';
+import { AuthTokenPayloadDto } from './dto/auth-token-payload.dto';
 
 @Injectable()
 export class AuthService {
@@ -36,9 +36,12 @@ export class AuthService {
       ).code;
   }
 
-  private async issueRefreshToken(userId: number): Promise<string> {
-    const refreshToken = await this.jwtService.signAsync(
-      { sub: userId },
+  private async issueRefreshToken(payload: {
+    sub: number;
+    currentRoleCode: string;
+  }): Promise<string> {
+    const refreshToken = await this.jwtService.signAsync<AuthTokenPayloadDto>(
+      payload,
       {
         secret: this.configService.getOrThrow<string>('JWT_REFRESH_SECRET'),
         expiresIn: '7d',
@@ -47,7 +50,11 @@ export class AuthService {
 
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 7);
-    await this.refreshTokensService.create(userId, refreshToken, expiresAt);
+    await this.refreshTokensService.create(
+      payload.sub,
+      refreshToken,
+      expiresAt,
+    );
 
     return refreshToken;
   }
@@ -71,16 +78,13 @@ export class AuthService {
     };
 
     const accessToken = await this.jwtService.signAsync(tokenPayload);
-    const refreshToken = await this.issueRefreshToken(user.id);
+    const refreshToken = await this.issueRefreshToken(tokenPayload);
 
     return { ...tokenPayload, accessToken, refreshToken };
   }
 
-  async refresh(
-    currentRoleCode: string,
-    refreshToken: string,
-  ): Promise<RefreshResponseDto> {
-    let payload: RefreshTokenPayloadDto;
+  async refresh(refreshToken: string): Promise<RefreshResponseDto> {
+    let payload: AuthTokenPayloadDto;
     try {
       payload = await this.jwtService.verifyAsync(refreshToken, {
         secret: this.configService.getOrThrow<string>('JWT_REFRESH_SECRET'),
@@ -101,14 +105,16 @@ export class AuthService {
     const userRoles = await this.userRolesService.findByUserId(payload.sub);
 
     const isAssignedRole = userRoles.some(
-      (userRole) => userRole.role.code === currentRoleCode,
+      (userRole) => userRole.role.code === payload.currentRoleCode,
     );
-    if (!isAssignedRole)
-      throw new UnauthorizedException('Role not assigned to this user.');
+    if (!isAssignedRole) {
+      await this.refreshTokensService.revoke(payload.sub, refreshToken);
+      throw new UnauthorizedException('Valid role not assigned to this user.');
+    }
 
-    const accessToken = await this.jwtService.signAsync({
+    const accessToken = await this.jwtService.signAsync<AuthTokenPayloadDto>({
       sub: payload.sub,
-      currentRoleCode,
+      currentRoleCode: payload.currentRoleCode,
     });
 
     return { accessToken };
