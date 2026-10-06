@@ -83,12 +83,16 @@ export class AuthController {
   @Post('switch-role')
   async switchRole(
     @Req() req: AuthenticatedRequest,
+    @Res({ passthrough: true }) res: Response,
     @Body() switchRoleDto: SwitchRoleDto,
   ) {
-    return this.authService.switchRole({
+    const { refreshToken, ...rest } = await this.authService.switchRole({
       userId: req.user.sub,
       currentRoleCode: req.user.currentRoleCode,
       roleCode: switchRoleDto.roleCode,
     });
+    this.setRefreshTokenCookie(res, refreshToken);
+
+    return rest;
   }
 }

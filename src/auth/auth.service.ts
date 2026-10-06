@@ -117,7 +117,11 @@ export class AuthService {
       currentRoleCode: payload.currentRoleCode,
     });
 
-    return { accessToken };
+    return {
+      sub: payload.sub,
+      currentRoleCode: payload.currentRoleCode,
+      accessToken,
+    };
   }
 
   async logout(userId: number, refreshToken: string): Promise<void> {
@@ -146,7 +150,12 @@ export class AuthService {
       currentRoleCode: dto.roleCode,
     });
 
-    return { currentRoleCode: dto.roleCode, accessToken };
+    const refreshToken = await this.issueRefreshToken({
+      sub: dto.userId,
+      currentRoleCode: dto.roleCode,
+    });
+
+    return { currentRoleCode: dto.roleCode, accessToken, refreshToken };
   }
 
   @Cron('0 3 * * *', { name: 'REFRESH_TOKEN_CLEANUP' }) // Runs daily at 3 AM
