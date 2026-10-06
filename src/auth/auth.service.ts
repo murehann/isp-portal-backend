@@ -155,7 +155,12 @@ export class AuthService {
       currentRoleCode: dto.roleCode,
     });
 
-    return { currentRoleCode: dto.roleCode, accessToken, refreshToken };
+    return {
+      sub: dto.userId,
+      currentRoleCode: dto.roleCode,
+      accessToken,
+      refreshToken,
+    };
   }
 
   @Cron('0 3 * * *', { name: 'REFRESH_TOKEN_CLEANUP' }) // Runs daily at 3 AM
